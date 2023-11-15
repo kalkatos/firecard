@@ -25,17 +25,14 @@ namespace Kalkatos.Firecard.Core
         }
         public static string[] Operators = new string[] { "=", "!=", "<", "<=", ">", ">=" };
 
-        public bool Value => GetValue();
-        public string Face => Left + Operators[(int)Operator] + Right;
-
         public bool GetValue ()
         {
             if (Sub != null)
-                value = Sub.Value;
+                value = Sub.GetValue();
             if (And != null)
-                return value && And.Value;
+                return value && And.GetValue();
             if (Or != null)
-                return value || Or.Value;
+                return value || Or.GetValue();
             return value;
         }
 
@@ -58,7 +55,7 @@ namespace Kalkatos.Firecard.Core
             if (Sub != null)
                 result = $"({Sub})";
             else
-                result = Face;
+                result = Left + Operators[(int)Operator] + Right;
             if (And != null)
                 result += $" AND {And}";
             if (Or != null)
