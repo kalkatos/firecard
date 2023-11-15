@@ -193,8 +193,10 @@ Icon?
 # Visual Studio 2014 CTP
 **/*.sln.ide
 
-# Visual Studio temp something
+# Visual Studio
 .vs/
+*.csproj
+*.sln
 
 # dotnet stuff
 project.lock.json

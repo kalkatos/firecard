@@ -1,0 +1,3 @@
+[submodule "CSharpGame"]
+	path = CSharpGame
+	url = https://github.com/kalkatos/csharpgame.git
