@@ -22,8 +22,10 @@ namespace Kalkatos.Firecard.Core
             LessOrEquals = 3,
             GreaterThan = 4,
             GreaterOrEquals = 5,
+            Contains = 6,
+            NotContains = 7,
         }
-        public static string[] Operators = new string[] { "=", "!=", "<", "<=", ">", ">=" };
+        public static string[] Operators = new string[] { "=", "!=", "<", "<=", ">", ">=", "->", "!>" };
 
         public bool GetValue ()
         {
