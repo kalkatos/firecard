@@ -1,5 +1,6 @@
 using System;
 using Kalkatos.Firecard.Utility;
+using Newtonsoft.Json;
 
 namespace Kalkatos.Firecard.Core
 {
@@ -7,19 +8,35 @@ namespace Kalkatos.Firecard.Core
     public class Effect
     {
         public EffectType EffectType;
-        public string StringParameter;
-        public CardSelector CardParameter;
-        public ZoneSelector ZoneParameter;
-        public Getter GetterParameter;
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public StringGetter StringParameter1;
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public StringGetter StringParameter2;
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public NumberGetter NumberParameter;
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public CardGetter CardParameter;
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public ZoneGetter ZoneParameter;
 
         public static Effect EndCurrentPhase ()
         {
             return new Effect { EffectType = EffectType.EndCurrentPhase };
         }
 
-        public static Effect AddTagToCard (string tag, CardSelector cardSelector)
+        public static Effect SetVariable (StringGetter variableName, NumberGetter value)
         {
-            return new Effect { EffectType = EffectType.AddTagToCard, CardParameter = cardSelector };
+            return new Effect { EffectType = EffectType.SetVariable, StringParameter1 = variableName, NumberParameter = value };
+        }
+
+        public static Effect SetVariable (StringGetter variableName, StringGetter value)
+        {
+            return new Effect { EffectType = EffectType.SetVariable, StringParameter1 = variableName, StringParameter2 = value };
+        }
+
+        public static Effect AddTagToCard (StringGetter tag, CardGetter cardSelector)
+        {
+            return new Effect { EffectType = EffectType.AddTagToCard, StringParameter1 = tag, CardParameter = cardSelector };
         }
 
         // TODO Finish effect simple builders
