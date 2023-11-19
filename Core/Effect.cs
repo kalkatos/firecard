@@ -4,6 +4,9 @@ using Newtonsoft.Json;
 
 namespace Kalkatos.Firecard.Core
 {
+    /// <summary>
+    /// Holds information on changes to be executed on Match. Used in ExecuteEffect method in the Match class.
+    /// </summary>
     [Serializable]
     public class Effect
     {

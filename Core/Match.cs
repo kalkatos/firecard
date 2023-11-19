@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Kalkatos.Firecard.Core
 {
+    /// <summary>
+    /// Main controller of this framework. When executing, it will run through the list of rules and execute their effects if the corresponding trigger is active and the condition is met.
+    /// </summary>
     [Serializable]
     public class Match
     {

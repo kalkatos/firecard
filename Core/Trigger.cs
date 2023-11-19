@@ -1,5 +1,8 @@
 namespace Kalkatos.Firecard.Core
 {
+    /// <summary>
+    /// Moments in the match relevant for the rules.
+    /// </summary>
     public enum Trigger
     {
         OnMatchStarted,     // 

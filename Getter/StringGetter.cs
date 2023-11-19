@@ -3,6 +3,9 @@ using System;
 
 namespace Kalkatos.Firecard.Utility
 {
+    /// <summary>
+    /// Gets and returns a string information from different sources.
+    /// </summary>
     [Serializable]
     public class StringGetter : Getter
     {

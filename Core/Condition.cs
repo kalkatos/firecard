@@ -2,6 +2,9 @@ using System;
 
 namespace Kalkatos.Firecard.Core
 {
+    /// <summary>
+    /// Checks information on match and return True or False according to internal setup.
+    /// </summary>
     [Serializable]
     public class Condition : IValueGetter<bool>
     {

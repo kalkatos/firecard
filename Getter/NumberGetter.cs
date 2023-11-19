@@ -4,6 +4,9 @@ using System;
 
 namespace Kalkatos.Firecard.Utility
 {
+    /// <summary>
+    /// Gets and returns a number from different sources.
+    /// </summary>
     [Serializable]
     public class NumberGetter : Getter
     {
