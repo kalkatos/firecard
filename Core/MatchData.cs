@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Kalkatos.Firecard.Core
 {
@@ -8,6 +9,10 @@ namespace Kalkatos.Firecard.Core
     [Serializable]
     public class MatchData
     {
-
+        public List<CardData> Cards;
+        public List<ZoneData> Zones;
+        public List<Rule> Rules;
+        public List<(string, string)> Variables;
+        public List<string> Phases;
     }
 }

@@ -21,6 +21,19 @@ namespace Kalkatos.Firecard.Core
         public IReadOnlyList<string> Tags => tags.AsReadOnly();
         public IReadOnlyList<Card> Cards => cards.AsReadOnly();
 
+        public Zone () { }
+
+        public Zone (ZoneData zoneData)
+        {
+            Setup(zoneData);
+        }
+
+        public void Setup (ZoneData zoneData)
+        {
+            name = zoneData.Name;
+            tags = new List<string>(zoneData.Tags);
+        }
+
         public void PushCard (Card card)
         {
             if (cards.Contains(card))

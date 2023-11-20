@@ -10,8 +10,10 @@ namespace Kalkatos.Firecard.Core
     [Serializable]
     public class Card
     {
-        public event Action OnSetup;
-        public event Action<Field> OnFieldChanged;
+        public static event Action<CardData> OnCardSetup;
+
+        public event Action<CardData> OnSetup;
+        public event Action<Field, Field> OnFieldChanged;
 
         /// <summary>
         /// Set by the Match when instantiated
@@ -32,12 +34,20 @@ namespace Kalkatos.Firecard.Core
         public IReadOnlyList<string> Tags => tags.AsReadOnly();
         public IReadOnlyList<Field> Fields => fields.AsReadOnly();
 
+        public Card () { }
+
+        public Card (CardData cardData)
+        {
+            Setup(cardData);
+        }
+
         public void Setup (CardData cardData)
         {
             name = cardData.Name;
             tags = new List<string>(cardData.Tags);
             fields = new List<Field>(cardData.Fields);
-            OnSetup?.Invoke();
+            OnSetup?.Invoke(cardData);
+            OnCardSetup?.Invoke(cardData);
         }
 
         public float GetNumericFieldValue (string fieldName)
@@ -76,9 +86,11 @@ namespace Kalkatos.Firecard.Core
             {
                 if (fields[i].Name == fieldName)
                 {
-                    Field newField = new Field(fields[i]);
+                    Field oldField = fields[i];
+                    Field newField = new Field(oldField);
                     newField.NumericValue = value;
                     fields[i] = newField;
+                    OnFieldChanged?.Invoke(oldField, newField);
                     return;
                 }
             }
@@ -90,9 +102,11 @@ namespace Kalkatos.Firecard.Core
             {
                 if (fields[i].Name == fieldName)
                 {
-                    Field newField = new Field(fields[i]);
+                    Field oldField = fields[i];
+                    Field newField = new Field(oldField);
                     newField.StringValue = value;
                     fields[i] = newField;
+                    OnFieldChanged?.Invoke(oldField, newField);
                     return;
                 }
             }
