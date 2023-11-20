@@ -9,6 +9,13 @@ namespace Kalkatos.Firecard.Utility
     [Serializable]
     public class CardGetter : Getter
     {
+        public CardGetterType Type;
+
+        public CardGetter (CardGetterType type)
+        {
+            Type = type;
+        }
+
         public Card[] GetCards ()
         {
             throw new NotImplementedException();
@@ -18,5 +25,16 @@ namespace Kalkatos.Firecard.Utility
         {
             return GetCards();
         }
+    }
+
+    public enum CardGetterType
+    {
+        Id,
+        Zone,
+        FieldValue,
+        Tag,
+        FromTop,
+        FromBottom,
+        Index,
     }
 }

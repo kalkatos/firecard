@@ -22,11 +22,11 @@ namespace Kalkatos.Firecard.Utility
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public ZoneGetter ZoneGetter;
 
-        [JsonProperty]
+        [JsonIgnore]
         private float value;
 
         [JsonIgnore]
-        public float Value => value;
+        public float Value => GetNumber();
 
         public NumberGetter () { }
 
