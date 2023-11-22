@@ -9,5 +9,11 @@ namespace Kalkatos.Firecard.Utility
         {
             throw new NotImplementedException();
         }
+
+        public bool Evaluate ()
+        {
+            // TODO
+            return false;
+        }
     }
 }

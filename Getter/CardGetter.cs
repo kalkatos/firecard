@@ -12,51 +12,48 @@ namespace Kalkatos.Firecard.Utility
     [Serializable]
     public class CardGetter : Getter
     {
-        public List<CardFilter> Filters = new();
+        [JsonProperty]
+        internal List<Filter<Card>> Filters = new();
 
         public CardGetter () { }
 
-        public CardGetter Id_Equals (StringGetter stringVariable)
+        public static CardGetter New => new CardGetter();
+
+        public CardGetter Id (string id)
         {
-            if (Filters == null)
-                Filters = new();
-            Filters.Add(new CardFilter_Id(stringVariable));
+            return Id(id, Operation.Equals);
+        }
+
+        public CardGetter Id (string id, Operation operation)
+        {
+            Filters.Add(new CardFilter_Id(id, operation));
             return this;
         }
 
-        public CardGetter Zone (ZoneGetter zoneGetter)
+        public CardGetter Zone (string tag)
         {
-            if (Filters == null)
-                Filters = new();
-            Filters.Add(new CardFilter_Zone(zoneGetter));
+            Filters.Add(new CardFilter_Zone(tag));
             return this;
         }
 
-        public CardGetter Tag_Equals (StringGetter tag)
+        public CardGetter Zone (ZoneGetter zoneGetter, Operation operation)
         {
-            // TODO 
+            Filters.Add(new CardFilter_Zone(zoneGetter, operation));
             return this;
         }
 
-        public CardGetter Tag_NotEquals (StringGetter tag)
+        public CardGetter Tag (string tag)
         {
-            // TODO 
+            return Tag(new ZoneGetter().Tag(tag), Operation.Equals);
+        }
+
+        public CardGetter Tag (ZoneGetter zoneGetter, Operation operation)
+        {
+            Filters.Add(new CardFilter_Zone(zoneGetter, operation));
             return this;
         }
 
-        public CardGetter Tag_Any (params StringGetter[] tags)
-        {
-            // TODO 
-            return this;
-        }
-
-        public CardGetter Tag_NotAny (params StringGetter[] tags)
-        {
-            // TODO 
-            return this;
-        }
-
-        public CardGetter Tag_All (params StringGetter[] tags)
+        public CardGetter Tag (StringGetter tag)
         {
             // TODO 
             return this;
@@ -68,11 +65,17 @@ namespace Kalkatos.Firecard.Utility
             return this;
         }
 
-        public Card[] GetCards ()
+        public CardGetter Amount (int value)
+        {
+            Filters.Add(new CardFilter_Amount(value));
+            return this;
+        }
+
+        public List<Card> GetCards ()
         {
             List<Card> cards = new List<Card>(Match.GetState().Cards);
             Filter(cards);
-            return cards.ToArray();
+            return cards;
         }
 
         public override object Get ()
@@ -82,113 +85,80 @@ namespace Kalkatos.Firecard.Utility
 
         private void Filter (List<Card> cards)
         {
+            if (cards.Count == 0)
+                return;
             cards = cards.Where((c) => Filters.TrueForAll((f) => f.IsMatch(c))).ToList();
         }
     }
 
     [Serializable]
-    public class CardFilter
+    internal class CardFilter_Id : Filter<Card>
     {
-        public CardGetterType Type;
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public StringGetter StringParameter1;
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public StringGetter StringParameter2;
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public ZoneGetter ZoneParameter;
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public NumberGetter NumberParameter;
+        [JsonProperty]
+        internal string plainString;
 
-        public virtual bool IsMatch (Card card)
+        internal CardFilter_Id () { }
+
+        internal CardFilter_Id (string id, Operation operation)
         {
-            switch (Type)
-            {
-                case CardGetterType.Id:
-                    return MatchById(card);
-                case CardGetterType.Zone:
-                    return MatchByZone(card);
-                case CardGetterType.NumericFieldValue:
-                    return MatchByNumericField(card);
-                case CardGetterType.StringFieldValue:
-                    return MatchByStringField(card);
-                case CardGetterType.Tag:
-                    break;
-                case CardGetterType.FromTop:
-                    break;
-                case CardGetterType.FromBottom:
-                    break;
-                case CardGetterType.Index:
-                    break;
-                default:
-                    throw new NotImplementedException($"Card getter type not implemented: {Type}.");
-            }
+            Operation = operation;
+            plainString = id;
+        }
+
+        internal override bool IsMatch (Card card)
+        {
             return false;
         }
+    }
 
-        protected bool MatchById (Card card)
+    [Serializable]
+    internal class CardFilter_Zone : Filter<Card>
+    {
+        [JsonProperty]
+        internal string simpleTag;
+        [JsonProperty]
+        internal ZoneGetter zoneParameter;
+
+        internal CardFilter_Zone () { }
+
+        internal CardFilter_Zone (ZoneGetter zoneGetter, Operation operation)
         {
-            string parValue = StringParameter1.GetString();
-            return card.id == parValue || card.id == Match.GetStringVariable(parValue);
+            Operation = operation;
+            zoneParameter = zoneGetter;
         }
 
-        protected bool MatchByZone (Card card)
+        internal CardFilter_Zone (string tag)
         {
-            Zone[] zones = ZoneParameter.GetZones();
-            if (zones == null || zones.Length == 0)
-                return false;
-            return card.currentZone == zones[0];
+            Operation = Operation.Equals;
+            simpleTag = tag;
         }
 
-        protected bool MatchByNumericField (Card card)
+        internal override bool IsMatch (Card card)
         {
-            string fieldName = StringParameter1.GetString();
-            return card.GetNumericFieldValue(fieldName) == NumberParameter.GetNumber();
-        }
-
-        protected bool MatchByStringField (Card card)
-        {
-            string fieldName = StringParameter1.GetString();
-            return card.GetStringFieldValue(fieldName) == StringParameter2.GetString();
+            if (!string.IsNullOrEmpty(simpleTag))
+                return card.CurrentZone?.HasTag(simpleTag) ?? false;
+            if (zoneParameter != null && card.CurrentZone != null)
+                return zoneParameter.GetZones().Contains(card.CurrentZone);
+            return false;
         }
     }
 
-    public class CardFilter_Id : CardFilter
+    [Serializable]
+    internal class CardFilter_Amount : Filter<Card>
     {
-        public CardFilter_Id (StringGetter stringVariable)
+        [JsonProperty]
+        internal int amount;
+
+        internal CardFilter_Amount () { }
+
+        internal CardFilter_Amount (int amount)
         {
-            Type = CardGetterType.Id;
-            StringParameter1 = stringVariable;
+            this.amount = amount;
         }
 
-        public override bool IsMatch (Card card)
+        internal override bool IsMatch (Card card)
         {
-            return MatchById(card);
+            return card.CurrentZone.Count - card.index > amount;
         }
-    }
-
-    public class CardFilter_Zone : CardFilter
-    {
-        public CardFilter_Zone (ZoneGetter zoneGetter)
-        {
-            Type = CardGetterType.Zone;
-            ZoneParameter = zoneGetter;
-        }
-
-        public override bool IsMatch (Card card)
-        {
-            return MatchByZone(card);
-        }
-    }
-
-    public enum CardGetterType
-    {
-        Id,
-        Zone,
-        NumericFieldValue,
-        StringFieldValue,
-        Tag,
-        FromTop,
-        FromBottom,
-        Index,
     }
 }

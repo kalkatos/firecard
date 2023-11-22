@@ -1,6 +1,7 @@
 ﻿using Kalkatos.Firecard.Core;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 
 namespace Kalkatos.Firecard.Utility
 {
@@ -64,8 +65,8 @@ namespace Kalkatos.Firecard.Utility
                     value = Match.GetStringVariable(StringParameter.GetString());
                     break;
                 case StringGetterType.FieldString:
-                    Card[] cards = CardParameter.GetCards();
-                    if (cards != null && cards.Length > 0)
+                    List<Card> cards = CardParameter.GetCards();
+                    if (cards != null && cards.Count > 0)
                         value = cards[0].GetStringFieldValue(StringParameter.GetString());
                     else
                         value = "";

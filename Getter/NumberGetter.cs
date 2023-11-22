@@ -1,6 +1,7 @@
 ﻿using Kalkatos.Firecard.Core;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 
 namespace Kalkatos.Firecard.Utility
 {
@@ -123,14 +124,14 @@ namespace Kalkatos.Firecard.Utility
                 case NumberGetterType.Plain:
                     break;
                 case NumberGetterType.CardCount:
-                    value = CardGetter.GetCards().Length;
+                    value = CardGetter.GetCards().Count;
                     break;
                 case NumberGetterType.ZoneCount:
-                    value = ZoneGetter.GetZones().Length;
+                    value = ZoneGetter.GetZones().Count;
                     break;
                 case NumberGetterType.FieldNumeric:
-                    Card[] cards = CardGetter.GetCards();
-                    if (cards != null && cards.Length > 0)
+                    List<Card> cards = CardGetter.GetCards();
+                    if (cards != null && cards.Count > 0)
                         value = cards[0].GetNumericFieldValue(StringGetter.GetString());
                     else
                         value = float.NaN;
@@ -139,8 +140,8 @@ namespace Kalkatos.Firecard.Utility
                     value = Match.GetNumericVariable(StringGetter.GetString());
                     break;
                 case NumberGetterType.CardIndex:
-                    Card[] cards2 = CardGetter.GetCards();
-                    if (cards2 != null && cards2.Length > 0)
+                    List<Card> cards2 = CardGetter.GetCards();
+                    if (cards2 != null && cards2.Count > 0)
                         value = cards2[0].Index;
                     else
                         value =  float.NaN;

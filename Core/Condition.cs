@@ -17,18 +17,7 @@ namespace Kalkatos.Firecard.Core
 
         private bool value;
 
-        public enum Operation
-        {
-            Equals = 0,
-            NotEquals = 1,
-            LessThan = 2,
-            LessOrEquals = 3,
-            GreaterThan = 4,
-            GreaterOrEquals = 5,
-            Contains = 6,
-            NotContains = 7,
-        }
-        public static string[] Operators = new string[] { "=", "!=", "<", "<=", ">", ">=", "->", "!>" };
+        public static string[] Operators = new string[] { "=", "!=", "<", "<=", ">", ">=", "->", "!>", "<>" };
 
         public bool GetValue ()
         {
@@ -67,5 +56,18 @@ namespace Kalkatos.Firecard.Core
                 result += $" OR {Or}";
             return result;
         }
+    }
+
+    public enum Operation
+    {
+        Equals = 0,
+        NotEquals = 1,
+        LessThan = 2,
+        LessOrEquals = 3,
+        GreaterThan = 4,
+        GreaterOrEquals = 5,
+        Contains = 6,
+        NotContains = 7,
+        HasAll = 8,
     }
 }

@@ -11,6 +11,7 @@ namespace Kalkatos.Firecard.Core
     public class Effect
     {
         public EffectType EffectType;
+        public MoveCardOption MoveCardOption;
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public StringGetter StringParameter1;
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
@@ -42,8 +43,17 @@ namespace Kalkatos.Firecard.Core
             return new Effect { EffectType = EffectType.AddTagToCard, StringParameter1 = tag, CardParameter = cardSelector };
         }
 
-        // TODO Finish effect simple builders
+        public static Effect Shuffle (ZoneGetter zoneGetter)
+        {
+            return new Effect { EffectType = EffectType.Shuffle, ZoneParameter = zoneGetter };
+        }
 
+        public static Effect MoveCardToZone (CardGetter cardGetter, ZoneGetter zoneGetter, MoveCardOption option = MoveCardOption.None)
+        {
+            return new Effect { EffectType = EffectType.MoveCardToZone, CardParameter = cardGetter, ZoneParameter = zoneGetter, MoveCardOption = option };
+        }
+
+        // TODO Finish effect simple builders
 
         /*
         EndCurrentPhase         ()
@@ -87,5 +97,12 @@ namespace Kalkatos.Firecard.Core
         AddTagToCard,
         RemoveTagFromCard,
         //SendMessage,
+    }
+
+    public enum MoveCardOption
+    {
+        None,
+        Flipped,
+        ToBottom,
     }
 }

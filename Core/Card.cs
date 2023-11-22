@@ -30,7 +30,7 @@ namespace Kalkatos.Firecard.Core
 
         public int Index => index;
         public string Name => name;
-        public Zone Zone => currentZone;
+        public Zone CurrentZone => currentZone;
         public IReadOnlyList<string> Tags => tags.AsReadOnly();
         public IReadOnlyList<Field> Fields => fields.AsReadOnly();
 
@@ -48,6 +48,11 @@ namespace Kalkatos.Firecard.Core
             fields = new List<Field>(cardData.Fields);
             OnSetup?.Invoke(cardData);
             OnCardSetup?.Invoke(cardData);
+        }
+
+        public bool HasTag (string tag)
+        {
+            return tags.Contains(tag);
         }
 
         public float GetNumericFieldValue (string fieldName)
@@ -110,6 +115,18 @@ namespace Kalkatos.Firecard.Core
                     return;
                 }
             }
+        }
+
+        public static CardGetter All => new CardGetter();
+
+        public static CardGetter Tag (string tag)
+        {
+            return new CardGetter().Tag(tag);
+        }
+
+        public static CardGetter Zone (string tag)
+        {
+            return new CardGetter().Zone(tag);
         }
     }
 }
