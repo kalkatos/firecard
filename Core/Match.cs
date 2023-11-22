@@ -125,5 +125,11 @@ namespace Kalkatos.Firecard.Core
                     throw new NotImplementedException("Effect type not implemented: " + effect.EffectType);
             }
         }
+
+        public static MatchState GetState ()
+        {
+            // TODO Return actual current state
+            return new MatchState();
+        }
     }
 }

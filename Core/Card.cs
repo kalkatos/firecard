@@ -18,7 +18,7 @@ namespace Kalkatos.Firecard.Core
         /// <summary>
         /// Set by the Match when instantiated
         /// </summary>
-        internal int id;
+        internal string id;
         /// <summary>
         /// Set by the zone the card is in
         /// </summary>

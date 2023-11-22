@@ -22,7 +22,7 @@ namespace Kalkatos.Firecard.Utility
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public ZoneGetter ZoneGetter;
 
-        [JsonIgnore]
+        [JsonProperty]
         private float value;
 
         [JsonIgnore]
@@ -121,31 +121,41 @@ namespace Kalkatos.Firecard.Utility
             switch (Type)
             {
                 case NumberGetterType.Plain:
-                    return value;
+                    break;
                 case NumberGetterType.CardCount:
-                    return CardGetter.GetCards().Length;
+                    value = CardGetter.GetCards().Length;
+                    break;
                 case NumberGetterType.ZoneCount:
-                    return ZoneGetter.GetZones().Length;
+                    value = ZoneGetter.GetZones().Length;
+                    break;
                 case NumberGetterType.FieldNumeric:
                     Card[] cards = CardGetter.GetCards();
                     if (cards != null && cards.Length > 0)
-                        return cards[0].GetNumericFieldValue(StringGetter.GetString());
-                    return float.NaN;
+                        value = cards[0].GetNumericFieldValue(StringGetter.GetString());
+                    else
+                        value = float.NaN;
+                    break;
                 case NumberGetterType.VariableNumeric:
-                    return Match.GetNumericVariable(StringGetter.GetString());
+                    value = Match.GetNumericVariable(StringGetter.GetString());
+                    break;
                 case NumberGetterType.CardIndex:
                     Card[] cards2 = CardGetter.GetCards();
                     if (cards2 != null && cards2.Length > 0)
-                        return cards2[0].Index;
-                    return float.NaN;
+                        value = cards2[0].Index;
+                    else
+                        value =  float.NaN;
+                    break;
                 case NumberGetterType.RandomInt:
-                    return Match.Random.Next((int)NumberGetter1.GetNumber(), (int)NumberGetter2.GetNumber());
+                    value = Match.Random.Next((int)NumberGetter1.GetNumber(), (int)NumberGetter2.GetNumber());
+                    break;
                 case NumberGetterType.RandomFloat:
                     float f1 = NumberGetter1.GetNumber(), f2 = NumberGetter2.GetNumber();
-                    return f1 + (f2 - f1) * (float)Match.Random.NextDouble();
+                    value =  f1 + (f2 - f1) * (float)Match.Random.NextDouble();
+                    break;
                 default:
                     throw new NotImplementedException("NumberGetterType not implemented: " + Type);
             }
+            return value;
         }
 
         public override object Get ()

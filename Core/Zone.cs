@@ -13,6 +13,7 @@ namespace Kalkatos.Firecard.Core
         public event Action<Card> OnCardLeft;
         public event Action OnShuffled;
 
+        internal string id;
         internal string name;
         internal List<string> tags;
         internal List<Card> cards;

@@ -12,11 +12,11 @@ namespace Kalkatos.Firecard.Utility
     {
         public StringGetterType Type;
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public StringGetter SubStringGetter;
+        public StringGetter StringParameter;
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public CardGetter CardGetter;
+        public CardGetter CardParameter;
 
-        [JsonIgnore]
+        [JsonProperty]
         private string value;
 
         [JsonIgnore]
@@ -38,20 +38,20 @@ namespace Kalkatos.Firecard.Utility
             if (type == StringGetterType.Plain)
                 this.value = value;
             else if (type == StringGetterType.VariableString)
-                SubStringGetter = new StringGetter(value);
+                StringParameter = new StringGetter(value);
         }
 
         public StringGetter (StringGetter variableName)
         {
             Type = StringGetterType.VariableString;
-            SubStringGetter = variableName;
+            StringParameter = variableName;
         }
 
         public StringGetter (StringGetter fieldName, CardGetter cardGetter)
         {
             Type = StringGetterType.FieldString;
-            SubStringGetter = fieldName;
-            CardGetter = cardGetter;
+            StringParameter = fieldName;
+            CardParameter = cardGetter;
         }
 
         public string GetString ()
@@ -59,17 +59,21 @@ namespace Kalkatos.Firecard.Utility
             switch (Type)
             {
                 case StringGetterType.Plain:
-                    return value;
+                    break;
                 case StringGetterType.VariableString:
-                    return Match.GetStringVariable(SubStringGetter.GetString());
+                    value = Match.GetStringVariable(StringParameter.GetString());
+                    break;
                 case StringGetterType.FieldString:
-                    Card[] cards = CardGetter.GetCards();
+                    Card[] cards = CardParameter.GetCards();
                     if (cards != null && cards.Length > 0)
-                        return cards[0].GetStringFieldValue(SubStringGetter.GetString());
-                    return null;
+                        value = cards[0].GetStringFieldValue(StringParameter.GetString());
+                    else
+                        value = "";
+                    break;
                 default:
                     throw new NotImplementedException("StringGetterType not implemented: " + Type);
             }
+            return value;
         }
 
         public override object Get ()

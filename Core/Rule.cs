@@ -14,5 +14,7 @@ namespace Kalkatos.Firecard.Core
         public Condition Condition;
         public List<Effect> TrueEffects;
         public List<Effect> FalseEffects;
+
+        internal string id;
     }
 }
