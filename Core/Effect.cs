@@ -102,7 +102,7 @@ namespace Kalkatos.Firecard.Core
     public enum MoveCardOption
     {
         None,
-        Flipped,
+        FaceDown,
         ToBottom,
     }
 }
