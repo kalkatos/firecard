@@ -92,6 +92,9 @@ namespace Kalkatos.Firecard.Core
                 case EffectType.StartSubphaseLoop:
                     break;
                 case EffectType.Shuffle:
+                    List<Zone> zonesToShuffle = effect.ZoneParameter.GetZones();
+                    for (int i = 0; i < zonesToShuffle.Count; i++)
+                        zonesToShuffle[i].Shuffle();
                     break;
                 case EffectType.UseCard:
                     break;

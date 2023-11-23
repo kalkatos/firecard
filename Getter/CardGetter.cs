@@ -36,10 +36,20 @@ namespace Kalkatos.Firecard.Utility
             return this;
         }
 
+        public CardGetter Zone (Variable variable)
+        {
+            return Zone(new ZoneGetter().Id(Match.GetStringVariable(variable.Value))));
+        }
+
         public CardGetter Zone (ZoneGetter zoneGetter, Operation operation)
         {
             Filters.Add(new CardFilter_Zone(zoneGetter, operation));
             return this;
+        }
+
+        public CardGetter Zone (ZoneGetter zoneGetter)
+        {
+            return Zone(zoneGetter, Operation.Equals);
         }
 
         public CardGetter Tag (string tag)
@@ -55,8 +65,7 @@ namespace Kalkatos.Firecard.Utility
 
         public CardGetter Tag (StringGetter tag)
         {
-            // TODO 
-            return this;
+            return Tag(tag.GetString());
         }
 
         public CardGetter Field (FieldGetter fieldGetter)
@@ -65,7 +74,7 @@ namespace Kalkatos.Firecard.Utility
             return this;
         }
 
-        public CardGetter Amount (int value)
+        public CardGetter Top (int value)
         {
             Filters.Add(new CardFilter_Amount(value));
             return this;
@@ -85,7 +94,7 @@ namespace Kalkatos.Firecard.Utility
 
         private void Filter (List<Card> cards)
         {
-            if (cards.Count == 0)
+            if (cards.Count == 0 || Filters.Count == 0)
                 return;
             cards = cards.Where((c) => Filters.TrueForAll((f) => f.IsMatch(c))).ToList();
         }
@@ -107,7 +116,7 @@ namespace Kalkatos.Firecard.Utility
 
         internal override bool IsMatch (Card card)
         {
-            return false;
+            return Resolve(card.id, plainString) || Resolve(card.id, Match.GetStringVariable(plainString));
         }
     }
 

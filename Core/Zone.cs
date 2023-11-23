@@ -82,7 +82,7 @@ namespace Kalkatos.Firecard.Core
             Random rand = Match.Random;
             for (int i = cards.Count - 1; i > 0; i--)
             {
-                int j = rand.Next(0, i);
+                int j = rand.Next(0, i + 1);
                 Card temp = cards[j];
                 cards[j] = cards[i];
                 cards[i] = temp;
@@ -93,6 +93,11 @@ namespace Kalkatos.Firecard.Core
         public static ZoneGetter Tag (string tag)
         {
             return new ZoneGetter().Tag(tag);
+        }
+
+        public static ZoneGetter Id (Variable variable)
+        {
+            return new ZoneGetter().Id(variable.Value);
         }
     }
 }

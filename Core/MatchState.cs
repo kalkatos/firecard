@@ -10,5 +10,6 @@ namespace Kalkatos.Firecard.Core
     public class MatchState
     {
         public List<Card> Cards;
+        public List<Zone> Zones;
     }
 }

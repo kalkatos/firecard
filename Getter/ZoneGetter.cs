@@ -30,9 +30,17 @@ namespace Kalkatos.Firecard.Utility
             return this;
         }
 
+        public ZoneGetter Id (string id)
+        {
+            Filters.Add(new ZoneFilter_Id(id));
+            return this;
+        }
+
         public List<Zone> GetZones ()
         {
-            throw new NotImplementedException();
+            List<Zone> zones = new List<Zone>(Match.GetState().Zones);
+            Filter(zones);
+            return zones;
         }
 
         public override object Get ()
@@ -42,9 +50,9 @@ namespace Kalkatos.Firecard.Utility
 
         private void Filter (List<Zone> zones)
         {
-            if (Filters.Count == 0)
+            if (zones.Count == 0 || Filters.Count == 0)
                 return;
-            zones = zones.Where((c) => Filters.TrueForAll((f) => f.IsMatch(c))).ToList();
+            zones = zones.Where((z) => Filters.TrueForAll((f) => f.IsMatch(z))).ToList();
         }
     }
 
@@ -64,6 +72,25 @@ namespace Kalkatos.Firecard.Utility
         internal override bool IsMatch (Zone zone)
         {
             return zone.HasTag(plainTag);
+        }
+    }
+
+    internal class ZoneFilter_Id : Filter<Zone>
+    {
+        [JsonProperty]
+        internal string id;
+
+        internal ZoneFilter_Id () { }
+
+        internal ZoneFilter_Id (string tag)
+        {
+            Operation = Operation.Equals;
+            id = tag;
+        }
+
+        internal override bool IsMatch (Zone zone)
+        {
+            return Resolve(zone.id, Match.GetStringVariable(id)) || Resolve(zone.id, id);
         }
     }
 }

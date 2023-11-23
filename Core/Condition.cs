@@ -15,7 +15,7 @@ namespace Kalkatos.Firecard.Core
         public Condition And;
         public Condition Or;
 
-        private bool value;
+        private bool value = true;
 
         public static string[] Operators = new string[] { "=", "!=", "<", "<=", ">", ">=", "->", "!>", "<>" };
 
