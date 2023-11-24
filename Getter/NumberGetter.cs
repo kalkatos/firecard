@@ -22,6 +22,10 @@ namespace Kalkatos.Firecard.Utility
         public CardGetter CardGetter;
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public ZoneGetter ZoneGetter;
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string Expression;
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public object[] ExpressionParameters;
 
         [JsonProperty]
         private float value;
@@ -37,84 +41,136 @@ namespace Kalkatos.Firecard.Utility
             this.value = value;
         }
 
-        public NumberGetter (ZoneGetter zoneGetter)
+        public static NumberGetter New (ZoneGetter zoneGetter)
         {
-            Type = NumberGetterType.ZoneCount;
-            ZoneGetter = zoneGetter;
+            return new NumberGetter()
+            {
+                Type = NumberGetterType.ZoneCount,
+                ZoneGetter = zoneGetter,
+            };
         }
 
-        public NumberGetter (NumberGetterType type, CardGetter cardGetter)
+        public static NumberGetter New (CardGetter cardGetter)
+        {
+            return new NumberGetter()
+            {
+                Type = NumberGetterType.CardCount,
+                CardGetter = cardGetter,
+            };
+        }
+
+        public static NumberGetter New (NumberGetterType type, CardGetter cardGetter)
         {
             if (type != NumberGetterType.CardCount
                 && type != NumberGetterType.CardIndex)
                 throw new ArgumentException("A number getter that uses a card getter must be of type CardCount or CardIndex.");
-            Type = type;
-            CardGetter = cardGetter;
+            return new NumberGetter()
+            {
+                Type = type,
+                CardGetter = cardGetter,
+            };
         }
 
-        public NumberGetter (int min, int max)
+        public static NumberGetter New (int min, int max)
         {
-            Type = NumberGetterType.RandomInt;
-            NumberGetter1 = new NumberGetter(min);
-            NumberGetter2 = new NumberGetter(max);
+            return new NumberGetter()
+            {
+                Type = NumberGetterType.RandomInt,
+                NumberGetter1 = new NumberGetter(min),
+                NumberGetter2 = new NumberGetter(max),
+            };
         }
 
-        public NumberGetter (float min, float max)
+        public static NumberGetter New (float min, float max)
         {
-            Type = NumberGetterType.RandomFloat;
-            NumberGetter1 = new NumberGetter(min);
-            NumberGetter2 = new NumberGetter(max);
+            return new NumberGetter()
+            {
+                Type = NumberGetterType.RandomFloat,
+                NumberGetter1 = new NumberGetter(min),
+                NumberGetter2 = new NumberGetter(max),
+            };
         }
 
-        public NumberGetter (NumberGetter min, int max)
+        public static NumberGetter New (NumberGetter min, int max)
         {
-            Type = NumberGetterType.RandomInt;
-            NumberGetter1 = min;
-            NumberGetter2 = new NumberGetter(max);
+            return new NumberGetter()
+            {
+                Type = NumberGetterType.RandomInt,
+                NumberGetter1 = min,
+                NumberGetter2 = new NumberGetter(max),
+            };
         }
 
-        public NumberGetter (NumberGetter min, float max)
+        public static NumberGetter New (NumberGetter min, float max)
         {
-            Type = NumberGetterType.RandomFloat;
-            NumberGetter1 = min;
-            NumberGetter2 = new NumberGetter(max);
+            return new NumberGetter()
+            {
+                Type = NumberGetterType.RandomFloat,
+                NumberGetter1 = min,
+                NumberGetter2 = new NumberGetter(max),
+            };
         }
 
-        public NumberGetter (int min, NumberGetter max)
+        public static NumberGetter New (int min, NumberGetter max)
         {
-            Type = NumberGetterType.RandomInt;
-            NumberGetter1 = new NumberGetter(min);
-            NumberGetter2 = max;
+            return new NumberGetter()
+            {
+                Type = NumberGetterType.RandomInt,
+                NumberGetter1 = new NumberGetter(min),
+                NumberGetter2 = max,
+            };
         }
 
-        public NumberGetter (float min, NumberGetter max)
+        public static NumberGetter New (float min, NumberGetter max)
         {
-            Type = NumberGetterType.RandomFloat;
-            NumberGetter1 = new NumberGetter(min);
-            NumberGetter2 = max;
+            return new NumberGetter()
+            {
+                Type = NumberGetterType.RandomFloat,
+                NumberGetter1 = new NumberGetter(min),
+                NumberGetter2 = max,
+            };
         }
 
-        public NumberGetter (NumberGetterType type, NumberGetter min, NumberGetter max)
+        public static NumberGetter New (NumberGetterType type, NumberGetter min, NumberGetter max)
         {
             if (type != NumberGetterType.RandomInt
                 && type != NumberGetterType.RandomFloat)
                 throw new ArgumentException("A number getter that gets a random number must be of type RandomInt or RandomFloat.");
-            Type = type;
-            NumberGetter1 = min;
-            NumberGetter2 = max;
+            return new NumberGetter()
+            {
+                Type = type,
+                NumberGetter1 = min,
+                NumberGetter2 = max,
+            };
         }
 
-        public NumberGetter (CardGetter cardGetter, StringGetter fieldName)
+        public static NumberGetter New (CardGetter cardGetter, StringGetter fieldName)
         {
-            Type = NumberGetterType.FieldNumeric;
-            CardGetter = cardGetter;
-            StringGetter = fieldName;
+            return new NumberGetter()
+            {
+                Type = NumberGetterType.FieldNumeric,
+                CardGetter = cardGetter,
+                StringGetter = fieldName,
+            };
         }
 
-        public NumberGetter (StringGetter variableName)
+        public static NumberGetter New (StringGetter variableName)
         {
-            Type = NumberGetterType.VariableNumeric;
-            StringGetter = variableName;
+            return new NumberGetter()
+            {
+                Type = NumberGetterType.VariableNumeric,
+                StringGetter = variableName,
+            };
+        }
+
+        public static NumberGetter Exp (string expression, params object[] values)
+        {
+            return new NumberGetter()
+            {
+                Type = NumberGetterType.Expression,
+                Expression = expression,
+                ExpressionParameters = values,
+            };
         }
 
         public float GetNumber ()
@@ -144,14 +200,14 @@ namespace Kalkatos.Firecard.Utility
                     if (cards2 != null && cards2.Count > 0)
                         value = cards2[0].Index;
                     else
-                        value =  float.NaN;
+                        value = float.NaN;
                     break;
                 case NumberGetterType.RandomInt:
                     value = Match.Random.Next((int)NumberGetter1.GetNumber(), (int)NumberGetter2.GetNumber());
                     break;
                 case NumberGetterType.RandomFloat:
                     float f1 = NumberGetter1.GetNumber(), f2 = NumberGetter2.GetNumber();
-                    value =  f1 + (f2 - f1) * (float)Match.Random.NextDouble();
+                    value = f1 + (f2 - f1) * (float)Match.Random.NextDouble();
                     break;
                 default:
                     throw new NotImplementedException("NumberGetterType not implemented: " + Type);
@@ -175,5 +231,6 @@ namespace Kalkatos.Firecard.Utility
         CardIndex,
         RandomInt,
         RandomFloat,
+        Expression,
     }
 }
