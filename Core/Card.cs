@@ -26,17 +26,17 @@ namespace Kalkatos.Firecard.Core
         internal Zone currentZone;
         internal string name;
         internal List<string> tags;
-        internal List<Field> fields;
+        //internal List<Field> fields;
+
+        private Dictionary<string, Field> fields = new();
 
         public int Index => index;
         public string Name => name;
         public Zone CurrentZone => currentZone;
-        public IReadOnlyList<string> Tags => tags.AsReadOnly();
-        public IReadOnlyList<Field> Fields => fields.AsReadOnly();
 
         public Card () { }
 
-        public Card (CardData cardData)
+        public Card (CardData cardData) : this()
         {
             Setup(cardData);
         }
@@ -45,7 +45,9 @@ namespace Kalkatos.Firecard.Core
         {
             name = cardData.Name;
             tags = new List<string>(cardData.Tags);
-            fields = new List<Field>(cardData.Fields);
+            List<Field> dataFields = cardData.Fields;
+            for (int i = 0; i < dataFields.Count; i++)
+                fields.Add(dataFields[i].Name, dataFields[i]);
             OnSetup?.Invoke(cardData);
             OnCardSetup?.Invoke(cardData);
         }
@@ -55,14 +57,25 @@ namespace Kalkatos.Firecard.Core
             return tags.Contains(tag);
         }
 
+        public bool HasField (string fieldName)
+        {
+            return fields.ContainsKey(fieldName);
+        }
+
+        public object GetFieldValue (string fieldName)
+        {
+            if (!HasField(fieldName))
+                return null;
+            if (fields[fieldName].IsNumber())
+                return fields[fieldName].Number;
+            return fields[fieldName].Text;
+        }
+
         public float GetNumericFieldValue (string fieldName)
         {
-            for (int i = 0; i < fields.Count; i++)
-            {
-                if (fields[i].Name == fieldName)
-                    return fields[i].NumericValue;
-            }
-            return float.NaN;
+            if (!HasField(fieldName))
+                return float.NaN;
+            return fields[fieldName].Number.HasValue ? fields[fieldName].Number.Value : float.NaN;
         }
 
         public float GetNumericFieldValue (StringGetter fieldName)
@@ -70,51 +83,34 @@ namespace Kalkatos.Firecard.Core
             return GetNumericFieldValue(fieldName.GetString());
         }
 
-        public string GetStringFieldValue (string fieldName)
+        public string GetTextFieldValue (string fieldName)
         {
-            for (int i = 0; i < fields.Count; i++)
-            {
-                if (fields[i].Name == fieldName)
-                    return fields[i].StringValue;
-            }
-            return null;
+            if (!HasField(fieldName))
+                return null;
+            return fields[fieldName].Text;
         }
 
         public string GetStringFieldValue (StringGetter fieldName)
         {
-            return GetStringFieldValue(fieldName.GetString());
+            return GetTextFieldValue(fieldName.GetString());
         }
 
         internal void SetNumericValue (string fieldName, float value)
         {
-            for (int i = 0; i < fields.Count; i++)
-            {
-                if (fields[i].Name == fieldName)
-                {
-                    Field oldField = fields[i];
-                    Field newField = new Field(oldField);
-                    newField.NumericValue = value;
-                    fields[i] = newField;
-                    OnFieldChanged?.Invoke(oldField, newField);
-                    return;
-                }
-            }
+            Field oldField = fields.ContainsKey(fieldName) ? fields[fieldName] : new Field() { Name = fieldName };
+            Field newField = new Field(oldField);
+            newField.Number = value;
+            fields[fieldName] = newField;
+            OnFieldChanged?.Invoke(oldField, newField);
         }
 
         internal void SetStringValue (string fieldName, string value)
         {
-            for (int i = 0; i < fields.Count; i++)
-            {
-                if (fields[i].Name == fieldName)
-                {
-                    Field oldField = fields[i];
-                    Field newField = new Field(oldField);
-                    newField.StringValue = value;
-                    fields[i] = newField;
-                    OnFieldChanged?.Invoke(oldField, newField);
-                    return;
-                }
-            }
+            Field oldField = fields.ContainsKey(fieldName) ? fields[fieldName] : new Field() { Name = fieldName };
+            Field newField = new Field(oldField);
+            newField.Text = value;
+            fields[fieldName] = newField;
+            OnFieldChanged?.Invoke(oldField, newField);
         }
 
         public static CardGetter All => new CardGetter();
