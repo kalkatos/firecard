@@ -9,6 +9,7 @@ namespace Kalkatos.Firecard.Utility
     {
         [JsonProperty]
         internal Operation Operation;
+
         internal virtual bool IsMatch (T obj) { return false; }
 
         protected Func<string, string, bool>[] stringResolvers = new Func<string, string, bool>[]
@@ -35,6 +36,22 @@ namespace Kalkatos.Firecard.Utility
         protected bool Resolve (float a, float b)
         {
             return floatResolvers[(int)Operation](a, b);
+        }
+
+        protected bool Resolve (object a, object b)
+        {
+            switch (Type.GetTypeCode(a.GetType()))
+            {
+                case TypeCode.Single:
+                    if (b is float)
+                        return Resolve((float)a, (float)b);
+                    break;
+                case TypeCode.String:
+                    if (b is string)
+                        return Resolve((string)a, (string)b);
+                    break;
+            }
+            throw new ArgumentException($"Resolve cannot treat types: {a.GetType()} and {b.GetType()}");
         }
 
         protected static bool EqualsFuncStr (string a, string b) => a == b;

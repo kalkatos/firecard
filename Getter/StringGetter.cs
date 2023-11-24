@@ -67,7 +67,7 @@ namespace Kalkatos.Firecard.Utility
                 case StringGetterType.FieldString:
                     List<Card> cards = CardParameter.GetCards();
                     if (cards != null && cards.Count > 0)
-                        value = cards[0].GetStringFieldValue(StringParameter.GetString());
+                        value = cards[0].GetTextFieldValue(StringParameter.GetString());
                     else
                         value = "";
                     break;

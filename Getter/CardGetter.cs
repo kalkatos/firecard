@@ -38,7 +38,7 @@ namespace Kalkatos.Firecard.Utility
 
         public CardGetter Zone (Variable variable)
         {
-            return Zone(new ZoneGetter().Id(Match.GetStringVariable(variable.Value))));
+            return Zone(new ZoneGetter().Id(Match.GetStringVariable(variable.Value)));
         }
 
         public CardGetter Zone (ZoneGetter zoneGetter, Operation operation)
@@ -68,15 +68,15 @@ namespace Kalkatos.Firecard.Utility
             return Tag(tag.GetString());
         }
 
-        public CardGetter Field (FieldGetter fieldGetter)
+        public CardGetter Field (string fieldName, Getter getter)
         {
-            // TODO 
+            Filters.Add(new CardFilter_Field(fieldName, getter));
             return this;
         }
 
         public CardGetter Top (int value)
         {
-            Filters.Add(new CardFilter_Amount(value));
+            Filters.Add(new CardFilter_Top(value));
             return this;
         }
 
@@ -153,21 +153,62 @@ namespace Kalkatos.Firecard.Utility
     }
 
     [Serializable]
-    internal class CardFilter_Amount : Filter<Card>
+    internal class CardFilter_Top : Filter<Card>
     {
         [JsonProperty]
         internal int amount;
 
-        internal CardFilter_Amount () { }
+        internal CardFilter_Top () { }
 
-        internal CardFilter_Amount (int amount)
+        internal CardFilter_Top (int amount)
         {
             this.amount = amount;
         }
 
         internal override bool IsMatch (Card card)
         {
-            return card.CurrentZone.Count - card.index > amount;
+            return card.CurrentZone.Count - card.index >= amount;
+        }
+    }
+
+    [Serializable]
+    internal class CardFilter_Bottom : Filter<Card>
+    {
+        [JsonProperty]
+        internal int amount;
+
+        internal CardFilter_Bottom () { }
+
+        internal CardFilter_Bottom (int amount)
+        {
+            this.amount = amount;
+        }
+
+        internal override bool IsMatch (Card card)
+        {
+            return card.index < amount;
+        }
+    }
+
+    [Serializable]
+    internal class CardFilter_Field : Filter<Card>
+    {
+        [JsonProperty]
+        internal string fieldName;
+        [JsonProperty]
+        internal Getter getter;
+
+        internal CardFilter_Field () { }
+
+        internal CardFilter_Field (string fieldName, Getter getter)
+        {
+            this.fieldName = fieldName;
+            this.getter = getter;
+        }
+
+        internal override bool IsMatch (Card card)
+        {
+            return Resolve(card.GetFieldValue(fieldName), getter.Get());
         }
     }
 }
