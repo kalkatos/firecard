@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using System;
 
 namespace Kalkatos.Firecard.Core
@@ -8,36 +9,97 @@ namespace Kalkatos.Firecard.Core
     [Serializable]
     public class Condition : IValueGetter<bool>
     {
-        public string Left;
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public object Left;
         public Operation Operator;
-        public string Right;
-        public Condition Sub;
-        public Condition And;
-        public Condition Or;
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public object Right;
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public Condition SubCondition;
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public Condition AndCondition;
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public Condition OrCondition;
 
         private bool value = true;
+        private Condition end = null;
 
+        [JsonIgnore]
         public static string[] Operators = new string[] { "=", "!=", "<", "<=", ">", ">=", "->", "!>", "<>" };
+
+        public Condition (string expression, params object[] values)
+        {
+            throw new NotImplementedException("Condition with expression not implemented.");
+        }
+
+        public Condition (object left, string operation, object right)
+        {
+            int operationIndex = Array.IndexOf(Operators, operation);
+            if (operationIndex < 0)
+                throw new ArgumentException($"Operation is wrong ({operation}), expected: =, !=, <, <=, >, >=, ->, !>, <> ");
+            Left = left;
+            Operator = (Operation)operationIndex;
+            Right = right;
+            end = this;
+        }
+
+        public Condition (object left, Operation operation, object right)
+        {
+            Left = left;
+            Operator = operation;
+            Right = right;
+            end = this;
+        }
+
+        public Condition (Condition sub)
+        {
+            SubCondition = sub;
+            end = this;
+        }
+
+        public Condition And (object left, string @operator, object right)
+        {
+            AddAnd(new Condition(left, @operator, right));
+            return this;
+        }
+
+        public Condition And (Condition andCondition)
+        {
+            AddAnd(new Condition(andCondition));
+            return this;
+        }
+
+        public Condition Or (object left, string @operator, object right)
+        {
+            AddOr(new Condition(left, @operator, right));
+            return this;
+        }
+
+        public Condition Or (Condition orCondition)
+        {
+            AddOr(new Condition(orCondition));
+            return this;
+        }
 
         public bool GetValue ()
         {
-            if (Sub != null)
-                value = Sub.GetValue();
-            if (And != null)
-                return value && And.GetValue();
-            if (Or != null)
-                return value || Or.GetValue();
+            if (SubCondition != null)
+                value = SubCondition.GetValue();
+            if (AndCondition != null)
+                return value && AndCondition.GetValue();
+            if (OrCondition != null)
+                return value || OrCondition.GetValue();
             return value;
         }
 
         public void Evaluate (MatchState matchState)
         {
-            And?.Evaluate(matchState);
-            Or?.Evaluate(matchState);
-            if (Sub != null)
+            AndCondition?.Evaluate(matchState);
+            OrCondition?.Evaluate(matchState);
+            if (SubCondition != null)
             {
-                Sub.Evaluate(matchState);
-                value = Sub.value;
+                SubCondition.Evaluate(matchState);
+                value = SubCondition.value;
                 return;
             }
             // TODO Set own value based on what matchState contains
@@ -46,15 +108,27 @@ namespace Kalkatos.Firecard.Core
         public override string ToString ()
         {
             string result;
-            if (Sub != null)
-                result = $"({Sub})";
+            if (SubCondition != null)
+                result = $"({SubCondition})";
             else
                 result = Left + Operators[(int)Operator] + Right;
-            if (And != null)
-                result += $" AND {And}";
-            if (Or != null)
-                result += $" OR {Or}";
+            if (AndCondition != null)
+                result += $" AND {AndCondition}";
+            if (OrCondition != null)
+                result += $" OR {OrCondition}";
             return result;
+        }
+
+        private void AddAnd (Condition newCondition)
+        {
+            end.AndCondition = newCondition;
+            end = newCondition;
+        }
+
+        private void AddOr (Condition newCondition)
+        {
+            end.OrCondition = newCondition;
+            end = newCondition;
         }
     }
 
