@@ -28,6 +28,11 @@ namespace Kalkatos.Firecard.Core
             return new Effect { EffectType = EffectType.EndCurrentPhase };
         }
 
+        public static Effect EndTheMatch ()
+        {
+            return new Effect { EffectType = EffectType.EndTheMatch };
+        }
+
         public static Effect SetVariable (StringGetter variableName, NumberGetter value)
         {
             return new Effect { EffectType = EffectType.SetVariable, StringParameter1 = variableName, NumberParameter = value };
@@ -41,6 +46,21 @@ namespace Kalkatos.Firecard.Core
         public static Effect AddTagToCard (StringGetter tag, CardGetter cardSelector)
         {
             return new Effect { EffectType = EffectType.AddTagToCard, StringParameter1 = tag, CardParameter = cardSelector };
+        }
+
+        public static Effect RemoveTagFromCard (StringGetter tag, CardGetter cardSelector)
+        {
+            return new Effect { EffectType = EffectType.RemoveTagFromCard, StringParameter1 = tag, CardParameter = cardSelector };
+        }
+
+        public static Effect RemoveTagFromCard (string tag, CardGetter cardSelector)
+        {
+            return new Effect { EffectType = EffectType.RemoveTagFromCard, StringParameter1 = new StringGetter(tag), CardParameter = cardSelector };
+        }
+
+        public static Effect RemoveTagFromCard (Tag tag, CardGetter cardSelector)
+        {
+            return new Effect { EffectType = EffectType.RemoveTagFromCard, StringParameter1 = new StringGetter(tag.Value), CardParameter = cardSelector };
         }
 
         public static Effect Shuffle (ZoneGetter zoneGetter)

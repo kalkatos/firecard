@@ -20,7 +20,6 @@ namespace Kalkatos.Firecard.Core
         internal List<Card> cards;
 
         public string Name => name;
-        public IReadOnlyList<string> Tags => tags.AsReadOnly();
         public IReadOnlyList<Card> Cards => cards.AsReadOnly();
         public int Count => cards.Count;
 

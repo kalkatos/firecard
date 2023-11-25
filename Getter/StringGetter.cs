@@ -16,6 +16,8 @@ namespace Kalkatos.Firecard.Utility
         public StringGetter StringParameter;
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public CardGetter CardParameter;
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public Variable Variable;
 
         [JsonProperty]
         private string value;
@@ -29,6 +31,12 @@ namespace Kalkatos.Firecard.Utility
         {
             Type = StringGetterType.Plain;
             this.value = value;
+        }
+
+        public StringGetter (Variable variable)
+        {
+            Type = StringGetterType.VariableString;
+            Variable = variable;
         }
 
         public StringGetter (StringGetterType type, string value)
@@ -62,7 +70,10 @@ namespace Kalkatos.Firecard.Utility
                 case StringGetterType.Plain:
                     break;
                 case StringGetterType.VariableString:
-                    value = Match.GetStringVariable(StringParameter.GetString());
+                    if (string.IsNullOrEmpty(Variable.Value))
+                        value = Match.GetStringVariable(StringParameter.GetString());
+                    else
+                        value = Match.GetStringVariable(Variable.Value);
                     break;
                 case StringGetterType.FieldString:
                     List<Card> cards = CardParameter.GetCards();

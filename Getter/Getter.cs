@@ -19,6 +19,8 @@ namespace Kalkatos.Firecard.Utility
         public static Variable USED_ZONE = new Variable() { Value = "usedZone" };
         public static Variable USED_CARD_ZONE = new Variable() { Value = "usedCardZone" };
         public static Variable USED_ACTION = new Variable() { Value = "usedAction" };
+        public static Variable NEW_ZONE = new Variable() { Value = "newZone" };
+        public static Variable OLD_ZONE = new Variable() { Value = "oldZone" };
     }
 
     public struct Tag

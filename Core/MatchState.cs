@@ -12,4 +12,13 @@ namespace Kalkatos.Firecard.Core
         public List<Card> Cards;
         public List<Zone> Zones;
     }
+
+    /// <summary>
+    /// Contains instant information about a running game like what cards are in which zones, what info each card field has, what are the players' actions, what are the values in variables, etc.
+    /// </summary>
+    [Serializable]
+    public class MatchStateDiff
+    {
+        public object[] Differences;
+    }
 }
