@@ -125,6 +125,11 @@ namespace Kalkatos.Firecard.Core
             return new CardGetter().Zone(tag);
         }
 
+        public static CardGetter Zone (Tag tag)
+        {
+            return new CardGetter().Zone(tag.Value);
+        }
+
         public static CardGetter Zone (Variable variable)
         {
             return new CardGetter().Zone(variable);

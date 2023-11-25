@@ -104,6 +104,7 @@ namespace Kalkatos.Firecard.Core
         None,
         FaceDown,
         RevealedToOwner,
+        FromBottom,
         ToBottom,
     }
 }

@@ -80,6 +80,12 @@ namespace Kalkatos.Firecard.Utility
             return this;
         }
 
+        public CardGetter Index (string operation, NumberGetter numberGetter)
+        {
+            Filters.Add(new CardFilter_Index(operation, numberGetter));
+            return this;
+        }
+
         public List<Card> GetCards ()
         {
             List<Card> cards = new List<Card>(Match.GetState().Cards);
@@ -209,6 +215,26 @@ namespace Kalkatos.Firecard.Utility
         internal override bool IsMatch (Card card)
         {
             return Resolve(card.GetFieldValue(fieldName), getter.Get());
+        }
+    }
+
+    [Serializable]
+    internal class CardFilter_Index : Filter<Card>
+    {
+        [JsonProperty]
+        internal NumberGetter numberGetter;
+
+        internal CardFilter_Index () { }
+
+        internal CardFilter_Index (string operation, NumberGetter numberGetter)
+        {
+            Operation = Condition.StringToOperation(operation);
+            this.numberGetter = numberGetter;
+        }
+
+        internal override bool IsMatch (Card card)
+        {
+            return Resolve(card.Index, numberGetter.GetNumber());
         }
     }
 }

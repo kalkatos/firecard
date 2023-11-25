@@ -22,8 +22,8 @@ namespace Kalkatos.Firecard.Core
         private static string[] defaultVariables = new string[]
         {
             "matchNumber", "turnNumber", "phase", "actionName", "message", "variable",
-            "newValue", "oldValue", "rule", "ruleName", "usedCard", "movedCard",
-            "newZone", "oldZone", "usedZone", "additionalInfo", "this",
+            "newValue", "oldValue", "rule", "ruleName", "usedCard", "usedCardZone",
+            "movedCard", "newZone", "oldZone", "usedZone", "additionalInfo", "this",
         };
 
         public static void Setup (MatchData matchData)
