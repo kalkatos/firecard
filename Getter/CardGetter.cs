@@ -24,9 +24,22 @@ namespace Kalkatos.Firecard.Utility
             return Id(id, Operation.Equals);
         }
 
+        public CardGetter Id (Variable variableNameWithId)
+        {
+            Filters.Add(new CardFilter_Id(variableNameWithId, Operation.Equals));
+            return this;
+        }
+
         public CardGetter Id (string id, Operation operation)
         {
             Filters.Add(new CardFilter_Id(id, operation));
+            return this;
+        }
+
+
+        public CardGetter Id (Variable variableNameWithId, Operation operation)
+        {
+            Filters.Add(new CardFilter_Id(variableNameWithId, operation));
             return this;
         }
 
@@ -111,6 +124,8 @@ namespace Kalkatos.Firecard.Utility
     {
         [JsonProperty]
         internal string plainString;
+        [JsonProperty]
+        internal Variable variable;
 
         internal CardFilter_Id () { }
 
@@ -120,8 +135,16 @@ namespace Kalkatos.Firecard.Utility
             plainString = id;
         }
 
+        internal CardFilter_Id (Variable variable, Operation operation)
+        {
+            Operation = operation;
+            this.variable = variable;
+        }
+
         internal override bool IsMatch (Card card)
         {
+            if (!string.IsNullOrEmpty(variable.Value))
+                return Resolve(card.id, Match.GetStringVariable(variable.Value));
             return Resolve(card.id, plainString) || Resolve(card.id, Match.GetStringVariable(plainString));
         }
     }
