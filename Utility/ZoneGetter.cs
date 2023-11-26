@@ -36,9 +36,23 @@ namespace Kalkatos.Firecard.Utility
             return this;
         }
 
+        public ZoneGetter Card (CardGetter cardGetter)
+        {
+            Filters.Add(new ZoneFilter_Card(cardGetter, Operation.Equals));
+            return this;
+        }
+
+        public ZoneGetter Card (CardGetter cardGetter, Operation operation)
+        {
+            Filters.Add(new ZoneFilter_Card(cardGetter, operation));
+            return this;
+        }
+
         public List<Zone> GetZones ()
         {
             List<Zone> zones = new List<Zone>(Match.GetState().Zones);
+            for (int i = 0; i < Filters.Count; i++)
+                Filters[i].Prepare();
             Filter(zones);
             return zones;
         }
@@ -91,6 +105,45 @@ namespace Kalkatos.Firecard.Utility
         internal override bool IsMatch (Zone zone)
         {
             return Resolve(zone.id, Match.GetStringVariable(id)) || Resolve(zone.id, id);
+        }
+    }
+
+    internal class ZoneFilter_Card : Filter<Zone>
+    {
+        [JsonProperty]
+        internal CardGetter cardProperty;
+
+        private Card referenceCard;
+
+        internal ZoneFilter_Card () { }
+
+        internal ZoneFilter_Card (CardGetter cardGetter, Operation operation)
+        {
+            Operation = operation;
+            cardProperty = cardGetter;
+        }
+
+        internal override void Prepare ()
+        {
+            if (cardProperty == null)
+            {
+                referenceCard = null;
+                return;
+            }
+            List<Card> cards = cardProperty.GetCards();
+            if (cards.Count == 0)
+            {
+                referenceCard = null;
+                return;
+            }
+            referenceCard = cards[0];
+        }
+
+        internal override bool IsMatch (Zone zone)
+        {
+            if (referenceCard == null)
+                return false;
+            return Resolve(zone, referenceCard.CurrentZone);
         }
     }
 }

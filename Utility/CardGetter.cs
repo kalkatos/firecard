@@ -65,6 +65,18 @@ namespace Kalkatos.Firecard.Utility
             return Zone(zoneGetter, Operation.Equals);
         }
 
+        public CardGetter Zone (CardGetter other)
+        {
+            Filters.Add(new CardFilter_ZoneCard(other, Operation.Equals));
+            return this;
+        }
+
+        public CardGetter Zone (CardGetter other, Operation operation)
+        {
+            Filters.Add(new CardFilter_ZoneCard(other, operation));
+            return this;
+        }
+
         public CardGetter Tag (string tag)
         {
             return Tag(new ZoneGetter().Tag(tag), Operation.Equals);
@@ -115,6 +127,8 @@ namespace Kalkatos.Firecard.Utility
         {
             if (cards.Count == 0 || Filters.Count == 0)
                 return;
+            for (int i = 0; i < Filters.Count; i++)
+                Filters[i].Prepare();
             cards = cards.Where((c) => Filters.TrueForAll((f) => f.IsMatch(c))).ToList();
         }
     }
@@ -152,10 +166,13 @@ namespace Kalkatos.Firecard.Utility
     [Serializable]
     internal class CardFilter_Zone : Filter<Card>
     {
-        [JsonProperty]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         internal string simpleTag;
-        [JsonProperty]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         internal ZoneGetter zoneParameter;
+
+        private Func<Card, bool> isMatchFuncToBeUsed;
+        private List<Zone> zoneSelection;
 
         internal CardFilter_Zone () { }
 
@@ -171,13 +188,81 @@ namespace Kalkatos.Firecard.Utility
             simpleTag = tag;
         }
 
-        internal override bool IsMatch (Card card)
+        internal override void Prepare ()
         {
             if (!string.IsNullOrEmpty(simpleTag))
-                return card.CurrentZone?.HasTag(simpleTag) ?? false;
-            if (zoneParameter != null && card.CurrentZone != null)
-                return zoneParameter.GetZones().Contains(card.CurrentZone);
-            return false;
+                isMatchFuncToBeUsed = IsMatchBySimpleTag;
+            else if (zoneParameter != null)
+            {
+                zoneSelection = zoneParameter.GetZones();
+                isMatchFuncToBeUsed = IsMatchByZoneParameter;
+            }
+            else
+                isMatchFuncToBeUsed = (c) => false;
+        }
+
+        internal override bool IsMatch (Card card)
+        {
+            return isMatchFuncToBeUsed.Invoke(card);
+        }
+
+        private bool IsMatchBySimpleTag (Card card)
+        {
+            return card.CurrentZone?.HasTag(simpleTag) ?? false;
+        }
+
+        private bool IsMatchByZoneParameter (Card card)
+        {
+            if (card.CurrentZone == null)
+                return false;
+            return zoneSelection.Contains(card.CurrentZone);
+        }
+    }
+
+    [Serializable]
+    internal class CardFilter_ZoneCard : Filter<Card>
+    {
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        internal CardGetter cardGetter;
+
+        private Func<Card, bool> isMatchFuncToBeUsed;
+        private Card cardReference;
+
+        internal CardFilter_ZoneCard () { }
+
+        internal CardFilter_ZoneCard (CardGetter cardGetter, Operation operation)
+        {
+            Operation = operation;
+            this.cardGetter = cardGetter;
+        }
+
+        internal override void Prepare ()
+        {
+            if (cardGetter != null)
+            {
+                var selection = cardGetter.GetCards();
+                if (selection.Count > 0)
+                {
+                    cardReference = selection[0];
+                    if (cardReference.CurrentZone != null)
+                    {
+                        isMatchFuncToBeUsed = IsMatchByCardReference;
+                        return;
+                    }
+                }
+            }
+
+            isMatchFuncToBeUsed = (c) => false;
+        }
+
+        internal override bool IsMatch (Card card)
+        {
+            return isMatchFuncToBeUsed.Invoke(card);
+        }
+
+        internal bool IsMatchByCardReference (Card card)
+        {
+            return Resolve(card.CurrentZone, cardReference.CurrentZone);
         }
     }
 
@@ -224,7 +309,7 @@ namespace Kalkatos.Firecard.Utility
     {
         [JsonProperty]
         internal string fieldName;
-        [JsonProperty]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         internal Getter getter;
 
         internal CardFilter_Field () { }
@@ -244,7 +329,7 @@ namespace Kalkatos.Firecard.Utility
     [Serializable]
     internal class CardFilter_Index : Filter<Card>
     {
-        [JsonProperty]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         internal NumberGetter numberGetter;
 
         internal CardFilter_Index () { }

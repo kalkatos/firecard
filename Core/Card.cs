@@ -140,6 +140,11 @@ namespace Kalkatos.Firecard.Core
             return new CardGetter().Zone(variable);
         }
 
+        public static CardGetter Zone (CardGetter cardGetter)
+        {
+            return new CardGetter().Zone(cardGetter);
+        }
+
         public static CardGetter Id (Variable variable)
         {
             return new CardGetter().Id(variable);

@@ -98,5 +98,10 @@ namespace Kalkatos.Firecard.Core
         {
             return new ZoneGetter().Id(variable.Value);
         }
+
+        public static ZoneGetter Card (CardGetter cardGetter)
+        {
+            return new ZoneGetter().Card(cardGetter);
+        }
     }
 }

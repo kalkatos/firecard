@@ -60,5 +60,21 @@ namespace Kalkatos.Firecard.Utility
             }
             return new Tag() { Value = sb.ToString() };
         }
+
+        public static Tag Not (params string[] tags)
+        {
+            if (tags == null || tags.Length == 0)
+                throw new ArgumentException("Tag.And need a list of strings to be concatenated.");
+            StringBuilder sb = new();
+            sb.Append("!");
+            sb.Append(tags[0]);
+            for (int i = 1; i < tags.Length; i++)
+            {
+                sb.Append("!");
+                sb.Append("&");
+                sb.Append(tags[i]);
+            }
+            return new Tag() { Value = sb.ToString() };
+        }
     }
 }
