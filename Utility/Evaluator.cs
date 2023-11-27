@@ -31,17 +31,15 @@ namespace Kalkatos.Firecard.Utility
 
         internal static bool Resolve (object a, Operation operation, object b)
         {
-            if (ReferenceEquals(a, b))
-                return true;
             if (ReferenceEquals(a, null) || (ReferenceEquals(b, null)))
             {
-                Logger.LogWarning($"Resolving two objects with one of them being null: {a} {operation} {b}");
+                Logger.LogWarning($"Resolving two objects with null value: {a} {operation} {b}");
                 return false; 
             }
             switch (Type.GetTypeCode(a.GetType()))
             {
                 case TypeCode.Single:
-                    if (b is float && (int)operation < 2)
+                    if (IsNumeric(b) && (int)operation < 2)
                         return Resolve((float)a, operation, (float)b);
                     break;
                 case TypeCode.String:
@@ -54,6 +52,28 @@ namespace Kalkatos.Firecard.Utility
                     break;
             }
             throw new ArgumentException($"Resolve cannot treat types: {a.GetType()} and {b.GetType()} with operation {operation}.");
+        }
+
+        private static bool IsNumeric (object obj)
+        {
+            TypeCode typeCode = Type.GetTypeCode(obj.GetType());
+            switch (typeCode)
+            {
+                case TypeCode.SByte:
+                case TypeCode.Byte:
+                case TypeCode.Int16:
+                case TypeCode.UInt16:
+                case TypeCode.Int32:
+                case TypeCode.UInt32:
+                case TypeCode.Int64:
+                case TypeCode.UInt64:
+                case TypeCode.Single:
+                case TypeCode.Double:
+                case TypeCode.Decimal:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         private static Func<string, string, bool>[] stringResolvers = new Func<string, string, bool>[]
