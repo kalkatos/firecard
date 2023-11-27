@@ -43,15 +43,15 @@ namespace Kalkatos.Firecard.Utility
             return this;
         }
 
-        public CardGetter Zone (string tag)
+        public CardGetter Zone (string tag, Operation operation)
         {
-            Filters.Add(new CardFilter_Zone(tag));
+            Filters.Add(new CardFilter_Zone(tag, operation));
             return this;
         }
 
-        public CardGetter Zone (Variable variable)
+        public CardGetter Zone (string tag)
         {
-            return Zone(new ZoneGetter().Id(Match.GetStringVariable(variable.Value)));
+            return Zone(tag, Operation.Equals);
         }
 
         public CardGetter Zone (ZoneGetter zoneGetter, Operation operation)
@@ -60,15 +60,14 @@ namespace Kalkatos.Firecard.Utility
             return this;
         }
 
+        public CardGetter Zone (Variable variable)
+        {
+            return Zone(new ZoneGetter().Id(Match.GetStringVariable(variable.Value)));
+        }
+
         public CardGetter Zone (ZoneGetter zoneGetter)
         {
             return Zone(zoneGetter, Operation.Equals);
-        }
-
-        public CardGetter Zone (CardGetter other)
-        {
-            Filters.Add(new CardFilter_ZoneCard(other, Operation.Equals));
-            return this;
         }
 
         public CardGetter Zone (CardGetter other, Operation operation)
@@ -77,9 +76,9 @@ namespace Kalkatos.Firecard.Utility
             return this;
         }
 
-        public CardGetter Tag (string tag)
+        public CardGetter Zone (CardGetter other)
         {
-            return Tag(new ZoneGetter().Tag(tag), Operation.Equals);
+            return Zone(other, Operation.Equals);
         }
 
         public CardGetter Tag (ZoneGetter zoneGetter, Operation operation)
@@ -88,14 +87,24 @@ namespace Kalkatos.Firecard.Utility
             return this;
         }
 
+        public CardGetter Tag (string tag, Operation operation)
+        {
+            return Tag(new ZoneGetter().Tag(tag), operation);
+        }
+
+        public CardGetter Tag (string tag)
+        {
+            return Tag(tag, Operation.Equals);
+        }
+
         public CardGetter Tag (StringGetter tag)
         {
-            return Tag(tag.GetString());
+            return Tag(tag.GetString(), Operation.Equals);
         }
 
         public CardGetter Field (string fieldName, Getter getter)
         {
-            Filters.Add(new CardFilter_Field(fieldName, getter));
+            Filters.Add(new CardFilter_Field(fieldName, getter, Operation.Equals));
             return this;
         }
 
@@ -105,10 +114,21 @@ namespace Kalkatos.Firecard.Utility
             return this;
         }
 
+        public CardGetter Bottom (int value)
+        {
+            Filters.Add(new CardFilter_Bottom(value));
+            return this;
+        }
+
+        public CardGetter Index (NumberGetter numberGetter, Operation operation)
+        {
+            Filters.Add(new CardFilter_Index(numberGetter, operation));
+            return this;
+        }
+
         public CardGetter Index (string operation, NumberGetter numberGetter)
         {
-            Filters.Add(new CardFilter_Index(operation, numberGetter));
-            return this;
+            return Index(numberGetter, Evaluator.StringToOperation(operation));
         }
 
         public List<Card> GetCards ()
@@ -182,9 +202,9 @@ namespace Kalkatos.Firecard.Utility
             zoneParameter = zoneGetter;
         }
 
-        internal CardFilter_Zone (string tag)
+        internal CardFilter_Zone (string tag, Operation operation)
         {
-            Operation = Operation.Equals;
+            Operation = operation;
             simpleTag = tag;
         }
 
@@ -314,8 +334,9 @@ namespace Kalkatos.Firecard.Utility
 
         internal CardFilter_Field () { }
 
-        internal CardFilter_Field (string fieldName, Getter getter)
+        internal CardFilter_Field (string fieldName, Getter getter, Operation operation)
         {
+            Operation = operation;
             this.fieldName = fieldName;
             this.getter = getter;
         }
@@ -334,9 +355,9 @@ namespace Kalkatos.Firecard.Utility
 
         internal CardFilter_Index () { }
 
-        internal CardFilter_Index (string operation, NumberGetter numberGetter)
+        internal CardFilter_Index (NumberGetter numberGetter, Operation operation)
         {
-            Operation = Condition.StringToOperation(operation);
+            Operation = operation;
             this.numberGetter = numberGetter;
         }
 

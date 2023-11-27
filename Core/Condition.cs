@@ -1,3 +1,4 @@
+using Kalkatos.Firecard.Utility;
 using Newtonsoft.Json;
 using System;
 
@@ -24,17 +25,6 @@ namespace Kalkatos.Firecard.Core
         private bool value = true;
         private Condition end = null;
 
-        [JsonIgnore]
-        public static string[] Operators = new string[] { "=", "!=", "<", "<=", ">", ">=", "->", "!>", "<>" };
-
-        internal static Operation StringToOperation (string operationStr)
-        {
-            int operationIndex = Array.IndexOf(Operators, operationStr);
-            if (operationIndex < 0)
-                throw new ArgumentException($"Operation is wrong ({operationStr}), expected: =, !=, <, <=, >, >=, ->, !>, <> ");
-            return (Operation)operationIndex;
-        }
-
         public Condition (string expression, params object[] values)
         {
             throw new NotImplementedException("Condition with expression not implemented.");
@@ -60,7 +50,7 @@ namespace Kalkatos.Firecard.Core
 
         public Condition (object left, string operation, object right)
         {
-            Operation = StringToOperation(operation);
+            Operation = Evaluator.StringToOperation(operation);
             Left = left;
             Right = right;
             end = this;
@@ -125,16 +115,16 @@ namespace Kalkatos.Firecard.Core
                 value = SubCondition.value;
                 return;
             }
-            // TODO Set own value based on what matchState contains
+            value = Evaluator.Resolve(Left, Operation, Right);
         }
 
         public override string ToString ()
         {
             string result;
             if (SubCondition != null)
-                result = $"({SubCondition})";
+                result = $"( {SubCondition} )";
             else
-                result = Left + Operators[(int)Operation] + Right;
+                result = $"{Left} {Evaluator.OperationToString(Operation)} {Right}";
             if (AndCondition != null)
                 result += $" AND {AndCondition}";
             if (OrCondition != null)
@@ -153,18 +143,5 @@ namespace Kalkatos.Firecard.Core
             end.OrCondition = newCondition;
             end = newCondition;
         }
-    }
-
-    public enum Operation
-    {
-        Equals = 0,
-        NotEquals = 1,
-        LessThan = 2,
-        LessOrEquals = 3,
-        GreaterThan = 4,
-        GreaterOrEquals = 5,
-        Contains = 6,
-        NotContains = 7,
-        HasAll = 8,
     }
 }

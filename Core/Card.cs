@@ -130,6 +130,11 @@ namespace Kalkatos.Firecard.Core
             return new CardGetter().Zone(tag);
         }
 
+        public static CardGetter Zone (string tag, Operation operation)
+        {
+            return new CardGetter().Zone(tag, operation);
+        }
+
         public static CardGetter Zone (Tag tag)
         {
             return new CardGetter().Zone(tag.Value);

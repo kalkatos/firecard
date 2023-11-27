@@ -51,8 +51,6 @@ namespace Kalkatos.Firecard.Utility
         public List<Zone> GetZones ()
         {
             List<Zone> zones = new List<Zone>(Match.GetState().Zones);
-            for (int i = 0; i < Filters.Count; i++)
-                Filters[i].Prepare();
             Filter(zones);
             return zones;
         }
@@ -66,6 +64,8 @@ namespace Kalkatos.Firecard.Utility
         {
             if (zones.Count == 0 || Filters.Count == 0)
                 return;
+            for (int i = 0; i < Filters.Count; i++)
+                Filters[i].Prepare();
             zones = zones.Where((z) => Filters.TrueForAll((f) => f.IsMatch(z))).ToList();
         }
     }

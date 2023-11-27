@@ -1,48 +1,43 @@
-﻿using Kalkatos.Firecard.Core;
-using System;
+﻿using System;
 
 namespace Kalkatos.Firecard.Utility
 {
-    public static class Evaluator
+    internal static class Evaluator
     {
-        private static Func<string, string, bool>[] stringResolvers = new Func<string, string, bool>[]
-    {
-            EqualsFuncStr,
-            NotEqualsFuncStr,
-    };
+        internal static string[] Operators = new string[] { "=", "!=", "<", "<=", ">", ">=" };
 
-        private static Func<float, float, bool>[] floatResolvers = new Func<float, float, bool>[]
+        internal static Operation StringToOperation (string operationStr)
         {
-            EqualsFuncF,
-            NotEqualsFuncF,
-            LessThanFuncF,
-            LessOrEqualsFuncF,
-            GreaterThanFuncF,
-            GreaterOrEqualsFuncF,
-        };
+            int operationIndex = Array.IndexOf(Operators, operationStr);
+            if (operationIndex < 0)
+                throw new ArgumentException($"Operation is wrong ({operationStr}), expected: =, !=, <, <=, >, >=");
+            return (Operation)operationIndex;
+        }
 
-        private static Func<object, object, bool>[] objResolvers = new Func<object, object, bool>[]
+        internal static string OperationToString (Operation operation)
         {
-            EqualsFuncObj,
-            NotEqualsFuncObj,
-        };
+            return Operators[(int)operation];
+        }
 
-        public static bool Resolve (string a, Operation operation, string b)
+        internal static bool Resolve (string a, Operation operation, string b)
         {
             return stringResolvers[(int)operation](a, b);
         }
 
-        public static bool Resolve (float a, Operation operation, float b)
+        internal static bool Resolve (float a, Operation operation, float b)
         {
             return floatResolvers[(int)operation](a, b);
         }
 
-        public static bool Resolve (object a, Operation operation, object b)
+        internal static bool Resolve (object a, Operation operation, object b)
         {
             if (ReferenceEquals(a, b))
                 return true;
             if (ReferenceEquals(a, null) || (ReferenceEquals(b, null)))
-                return false;
+            {
+                Logger.LogWarning($"Resolving two objects with one of them being null: {a} {operation} {b}");
+                return false; 
+            }
             switch (Type.GetTypeCode(a.GetType()))
             {
                 case TypeCode.Single:
@@ -61,6 +56,28 @@ namespace Kalkatos.Firecard.Utility
             throw new ArgumentException($"Resolve cannot treat types: {a.GetType()} and {b.GetType()} with operation {operation}.");
         }
 
+        private static Func<string, string, bool>[] stringResolvers = new Func<string, string, bool>[]
+        {
+            EqualsFuncStr,
+            NotEqualsFuncStr,
+        };
+
+        private static Func<float, float, bool>[] floatResolvers = new Func<float, float, bool>[]
+        {
+            EqualsFuncF,
+            NotEqualsFuncF,
+            LessThanFuncF,
+            LessOrEqualsFuncF,
+            GreaterThanFuncF,
+            GreaterOrEqualsFuncF,
+        };
+
+        private static Func<object, object, bool>[] objResolvers = new Func<object, object, bool>[]
+        {
+            EqualsFuncObj,
+            NotEqualsFuncObj,
+        };
+
         private static bool EqualsFuncObj (object a, object b) => a.Equals(b);
         private static bool NotEqualsFuncObj (object a, object b) => !a.Equals(b);
         private static bool EqualsFuncStr (string a, string b) => a == b;
@@ -71,5 +88,15 @@ namespace Kalkatos.Firecard.Utility
         private static bool LessOrEqualsFuncF (float a, float b) => a <= b;
         private static bool GreaterThanFuncF (float a, float b) => a > b;
         private static bool GreaterOrEqualsFuncF (float a, float b) => a >= b;
+    }
+
+    public enum Operation
+    {
+        Equals = 0,
+        NotEquals = 1,
+        LessThan = 2,
+        LessOrEquals = 3,
+        GreaterThan = 4,
+        GreaterOrEquals = 5,
     }
 }
