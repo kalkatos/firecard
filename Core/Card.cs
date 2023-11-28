@@ -26,8 +26,7 @@ namespace Kalkatos.Firecard.Core
         internal Zone currentZone;
         internal string name;
         internal List<string> tags;
-        //internal List<Field> fields;
-
+        
         private Dictionary<string, Field> fields = new();
 
         public int Index => index;
@@ -65,7 +64,10 @@ namespace Kalkatos.Firecard.Core
         public object GetFieldValue (string fieldName)
         {
             if (!HasField(fieldName))
+            {
+                Logger.LogWarning($"Card {name} does not have a field with name: {fieldName}");
                 return null;
+            }
             if (fields[fieldName].IsNumber())
                 return fields[fieldName].Number;
             return fields[fieldName].Text;
@@ -90,7 +92,7 @@ namespace Kalkatos.Firecard.Core
             return fields[fieldName].Text;
         }
 
-        public string GetStringFieldValue (StringGetter fieldName)
+        public string GetTextFieldValue (StringGetter fieldName)
         {
             return GetTextFieldValue(fieldName.GetString());
         }

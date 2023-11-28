@@ -19,27 +19,26 @@ namespace Kalkatos.Firecard.Utility
 
         public static CardGetter New => new CardGetter();
 
-        public CardGetter Id (string id)
-        {
-            return Id(id, Operation.Equals);
-        }
-
-        public CardGetter Id (Variable variableNameWithId)
-        {
-            Filters.Add(new CardFilter_Id(variableNameWithId, Operation.Equals));
-            return this;
-        }
-
         public CardGetter Id (string id, Operation operation)
         {
             Filters.Add(new CardFilter_Id(id, operation));
             return this;
         }
 
-
-        public CardGetter Id (Variable variableNameWithId, Operation operation)
+        public CardGetter Id (string id)
         {
-            Filters.Add(new CardFilter_Id(variableNameWithId, operation));
+            return Id(id, Operation.Equals);
+        }
+
+        public CardGetter Id (Variable variable, Operation operation)
+        {
+            Filters.Add(new CardFilter_IdFromVariable(variable, operation));
+            return this;
+        }
+
+        public CardGetter Id (Variable variable)
+        {
+            Filters.Add(new CardFilter_IdFromVariable(variable, Operation.Equals));
             return this;
         }
 
@@ -56,7 +55,7 @@ namespace Kalkatos.Firecard.Utility
 
         public CardGetter Zone (ZoneGetter zoneGetter, Operation operation)
         {
-            Filters.Add(new CardFilter_Zone(zoneGetter, operation));
+            Filters.Add(new CardFilter_ZoneGetter(zoneGetter, operation));
             return this;
         }
 
@@ -83,13 +82,14 @@ namespace Kalkatos.Firecard.Utility
 
         public CardGetter Tag (ZoneGetter zoneGetter, Operation operation)
         {
-            Filters.Add(new CardFilter_Zone(zoneGetter, operation));
+            Filters.Add(new CardFilter_ZoneGetter(zoneGetter, operation));
             return this;
         }
 
         public CardGetter Tag (string tag, Operation operation)
         {
-            return Tag(new ZoneGetter().Tag(tag), operation);
+            Filters.Add(new CardFilter_Tag(tag, operation));
+            return this;
         }
 
         public CardGetter Tag (string tag)
@@ -97,14 +97,38 @@ namespace Kalkatos.Firecard.Utility
             return Tag(tag, Operation.Equals);
         }
 
+        public CardGetter Tag (StringGetter tag, Operation operation)
+        {
+            Filters.Add(new CardFilter_TagGetter(tag, operation));
+            return this;
+        }
+
         public CardGetter Tag (StringGetter tag)
         {
-            return Tag(tag.GetString(), Operation.Equals);
+            return Tag(tag, Operation.Equals);
+        }
+
+        public CardGetter Field (string fieldName, Getter getter, Operation operation)
+        {
+            Filters.Add(new CardFilter_Field(fieldName, getter, operation));
+            return this;
         }
 
         public CardGetter Field (string fieldName, Getter getter)
         {
             Filters.Add(new CardFilter_Field(fieldName, getter, Operation.Equals));
+            return this;
+        }
+
+        public CardGetter Field (string fieldName, string value, Operation operation)
+        {
+            Filters.Add(new CardFilter_FieldText(fieldName, value, operation));
+            return this;
+        }
+
+        public CardGetter Field (string fieldName, string value)
+        {
+            Filters.Add(new CardFilter_FieldText(fieldName, value, Operation.Equals));
             return this;
         }
 
@@ -158,8 +182,6 @@ namespace Kalkatos.Firecard.Utility
     {
         [JsonProperty]
         internal string plainString;
-        [JsonProperty]
-        internal Variable variable;
 
         internal CardFilter_Id () { }
 
@@ -169,7 +191,21 @@ namespace Kalkatos.Firecard.Utility
             plainString = id;
         }
 
-        internal CardFilter_Id (Variable variable, Operation operation)
+        internal override bool IsMatch (Card card)
+        {
+            return Evaluator.Resolve(card.id, Operation, plainString) || Evaluator.Resolve(card.id, Operation, Match.GetStringVariable(plainString));
+        }
+    }
+
+    [Serializable]
+    internal class CardFilter_IdFromVariable : Filter<Card>
+    {
+        [JsonProperty]
+        internal Variable variable;
+
+        internal CardFilter_IdFromVariable () { }
+
+        internal CardFilter_IdFromVariable (Variable variable, Operation operation)
         {
             Operation = operation;
             this.variable = variable;
@@ -177,9 +213,47 @@ namespace Kalkatos.Firecard.Utility
 
         internal override bool IsMatch (Card card)
         {
-            if (!string.IsNullOrEmpty(variable.Value))
-                return Resolve(card.id, Match.GetStringVariable(variable.Value));
-            return Resolve(card.id, plainString) || Resolve(card.id, Match.GetStringVariable(plainString));
+            return Evaluator.Resolve(card.id, Operation, Match.GetStringVariable(variable.Value));
+        }
+    }
+
+    [Serializable]
+    internal class CardFilter_Tag : Filter<Card>
+    {
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        internal string simpleTag;
+
+        internal CardFilter_Tag () { }
+
+        internal CardFilter_Tag (string tag, Operation operation) 
+        {
+            simpleTag = tag;
+            Operation = operation;
+        }
+
+        internal override bool IsMatch (Card card)
+        {
+            return Evaluator.Resolve(card, Operation, simpleTag);
+        }
+    }
+
+    [Serializable]
+    internal class CardFilter_TagGetter : Filter<Card>
+    {
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        internal StringGetter stringGetter;
+
+        internal CardFilter_TagGetter () { }
+
+        internal CardFilter_TagGetter (StringGetter stringGetter, Operation operation)
+        {
+            this.stringGetter = stringGetter;
+            Operation = operation;
+        }
+
+        internal override bool IsMatch (Card card)
+        {
+            return Evaluator.Resolve(card, Operation, stringGetter.GetString());
         }
     }
 
@@ -188,19 +262,8 @@ namespace Kalkatos.Firecard.Utility
     {
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         internal string simpleTag;
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        internal ZoneGetter zoneParameter;
-
-        private Func<Card, bool> isMatchFuncToBeUsed;
-        private List<Zone> zoneSelection;
 
         internal CardFilter_Zone () { }
-
-        internal CardFilter_Zone (ZoneGetter zoneGetter, Operation operation)
-        {
-            Operation = operation;
-            zoneParameter = zoneGetter;
-        }
 
         internal CardFilter_Zone (string tag, Operation operation)
         {
@@ -208,32 +271,41 @@ namespace Kalkatos.Firecard.Utility
             simpleTag = tag;
         }
 
+        internal override bool IsMatch (Card card)
+        {
+            if (card.CurrentZone == null)
+                return false;
+            return Evaluator.Resolve(card.CurrentZone, Operation, simpleTag);  // TODO Comparison between Zone and string if has tag
+        }
+    }
+
+    [Serializable]
+    internal class CardFilter_ZoneGetter : Filter<Card>
+    {
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        internal ZoneGetter zoneGetter;
+
+        private List<Zone> zoneSelection;
+
+        internal CardFilter_ZoneGetter () { }
+
+        internal CardFilter_ZoneGetter (ZoneGetter zoneGetter, Operation operation)
+        {
+            Operation = operation;
+            this.zoneGetter = zoneGetter;
+        }
+
         internal override void Prepare ()
         {
-            if (!string.IsNullOrEmpty(simpleTag))
-                isMatchFuncToBeUsed = IsMatchBySimpleTag;
-            else if (zoneParameter != null)
-            {
-                zoneSelection = zoneParameter.GetZones();
-                isMatchFuncToBeUsed = IsMatchByZoneParameter;
-            }
+            if (zoneGetter != null)
+                zoneSelection = zoneGetter.GetZones();
             else
-                isMatchFuncToBeUsed = (c) => false;
+                Logger.LogWarning("CardFilter_ZoneGetter zoneGetter is null.");
         }
 
         internal override bool IsMatch (Card card)
         {
-            return isMatchFuncToBeUsed.Invoke(card);
-        }
-
-        private bool IsMatchBySimpleTag (Card card)
-        {
-            return card.CurrentZone?.HasTag(simpleTag) ?? false;
-        }
-
-        private bool IsMatchByZoneParameter (Card card)
-        {
-            if (card.CurrentZone == null)
+            if (card.CurrentZone == null || zoneSelection == null)
                 return false;
             return zoneSelection.Contains(card.CurrentZone);
         }
@@ -282,7 +354,7 @@ namespace Kalkatos.Firecard.Utility
 
         internal bool IsMatchByCardReference (Card card)
         {
-            return Resolve(card.CurrentZone, cardReference.CurrentZone);
+            return Evaluator.Resolve(card.CurrentZone, Operation, cardReference.CurrentZone);
         }
     }
 
@@ -343,7 +415,30 @@ namespace Kalkatos.Firecard.Utility
 
         internal override bool IsMatch (Card card)
         {
-            return Resolve(card.GetFieldValue(fieldName), getter.Get());
+            return Evaluator.Resolve(card.GetFieldValue(fieldName), Operation, getter.Get());
+        }
+    }
+
+    [Serializable]
+    internal class CardFilter_FieldText : Filter<Card>
+    {
+        [JsonProperty]
+        internal string fieldName;
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        internal string value;
+
+        internal CardFilter_FieldText () { }
+
+        internal CardFilter_FieldText (string fieldName, string value, Operation operation)
+        {
+            Operation = operation;
+            this.fieldName = fieldName;
+            this.value = value;
+        }
+
+        internal override bool IsMatch (Card card)
+        {
+            return Evaluator.Resolve(card.GetTextFieldValue(fieldName), Operation, value);
         }
     }
 
@@ -363,7 +458,7 @@ namespace Kalkatos.Firecard.Utility
 
         internal override bool IsMatch (Card card)
         {
-            return Resolve(card.Index, numberGetter.GetNumber());
+            return Evaluator.Resolve(card.Index, Operation, numberGetter.GetNumber());
         }
     }
 }

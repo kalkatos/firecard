@@ -76,6 +76,44 @@ namespace Kalkatos.Firecard.Utility
             }
         }
 
+        /*
+
+        CardGetter  =  !=  Tag
+        ZoneGetter  =  !=  Tag
+        NumberGetter  numOp  number
+        NumberGetter  numOp  NumberGetter
+        number  numOp  NumberGetter
+        FieldGetter  numOp  FieldGetter
+        FieldGetter  =  !=  string
+        FieldGetter  numOp  number
+        FieldGetter  numOp  NumberGetter
+        string  =  !=  FieldGetter
+        number  numOp  FieldGetter
+        NumberGetter  numOp  FieldGetter
+        StringGetter  =  !=  StringGetter
+        StringGetter  =  !=  string
+        string  =  !=  StringGetter
+        CardGetter  =  !=  CardGetter
+        ZoneGetter  =  !=  ZoneGetter
+        CardGetter  =  !=  Card
+        Card  =  !=  CardGetter
+        ZoneGetter  =  !=  Zone
+        Zone  =  !=   ZoneGetter
+        StringGetter  =  !=  Tag
+        Tag  =  !=  StringGetter
+        string  =  !=  Tag
+        Tag  =  !=  string
+        Zone  =  !=  string
+        string  =  !=  Zone
+        Card  =  !=  string
+        string  =  !=  Card
+        Card  =  !=  StringGetter
+        StringGetter  =  !=  Card
+        Zone  =  !=  StringGetter
+        StringGetter  =  !=  Zone
+
+        */
+
         private static Func<string, string, bool>[] stringResolvers = new Func<string, string, bool>[]
         {
             EqualsFuncStr,
