@@ -10,7 +10,9 @@ namespace Kalkatos.Firecard.Core
     [Serializable]
     public class Zone
     {
+        public event Action<List<Card>> OnCardGroupEntered;
         public event Action<Card> OnCardEntered;
+        public event Action<List<Card>> OnCardGroupLeft;
         public event Action<Card> OnCardLeft;
         public event Action OnShuffled;
 
@@ -20,7 +22,7 @@ namespace Kalkatos.Firecard.Core
         internal List<Card> cards;
 
         public string Name => name;
-        public IReadOnlyList<Card> Cards => cards.AsReadOnly();
+        public Card[] Cards => cards.ToArray();
         public int Count => cards.Count;
 
         public Zone () { }
@@ -41,27 +43,55 @@ namespace Kalkatos.Firecard.Core
             return tags.Contains(tag);
         }
 
-        public void PushCard (Card card)
+        public Card GetCardAt (int index)
         {
-            if (cards.Contains(card))
-                return;
-            cards.Add(card);
-            card.currentZone = this;
-            OnCardEntered?.Invoke(card);
+            if (cards.Count == 0)
+                return null;
+            else if (index < 0 || index >= cards.Count)
+                return null;
+            return cards[index];
         }
 
-        public void InsertCard (Card card, int index = 0)
+        public bool PushCard (Card card, Action<Card, Zone, Zone> cardEnteredCallback = null, Action<Card, Zone> cardLeftCallback = null)
+        {
+            if (cards.Contains(card))
+                return false;
+            AddCard(card, cards.Count, cardEnteredCallback, cardLeftCallback);
+            return true;
+        }
+
+        public void PushCards (List<Card> cardList, Action<Card, Zone, Zone> cardEnteredCallback = null, Action<Card, Zone> cardLeftCallback = null)
+        {
+            List<Card> added = new();
+            foreach (Card card in cardList)
+                if (PushCard(card, cardEnteredCallback, cardLeftCallback))
+                    added.Add(card);
+            OnCardGroupEntered?.Invoke(added);
+        }
+
+        public bool InsertCard (Card card, int index = 0, Action<Card, Zone, Zone> cardEnteredCallback = null, Action<Card, Zone> cardLeftCallback = null)
         {
             if (cards.Contains(card)
                 || index < 0
                 || index > cards.Count)
-                return;
-            cards.Insert(index, card);
-            card.currentZone = this;
-            OnCardEntered?.Invoke(card);
+                return false;
+            AddCard(card, index, cardEnteredCallback, cardLeftCallback);
+            return true;
         }
 
-        public Card PopCard (int index = -1)
+        public void InsertCards (List<Card> cardList, int index = 0, Action<Card, Zone, Zone> cardEnteredCallback = null, Action<Card, Zone> cardLeftCallback = null)
+        {
+            List<Card> added = new();
+
+            for (int i = cardList.Count - 1; i >= 0; i--)
+            {
+                Card card = cardList[i];
+                if (InsertCard(card, 0, cardEnteredCallback, cardLeftCallback))
+                    added.Add(card);
+            }
+        }
+
+        public Card PopCard (int index = -1, Action<Card, Zone> cardRemovedCallback = null)
         {
             if (cards.Count == 0)
                 return null;
@@ -70,10 +100,25 @@ namespace Kalkatos.Firecard.Core
             else if (index < 0 || index >= cards.Count)
                 return null;
             Card card = cards[index];
-            card.currentZone = null;
-            cards.RemoveAt(index);
-            OnCardLeft?.Invoke(card);
+            RemoveCard(card, cardRemovedCallback);
             return card;
+        }
+
+        public bool PopCard (Card card, Action<Card, Zone> cardRemovedCallback = null)
+        {
+            if (cards.Count == 0 || !cards.Contains(card))
+                return false;
+            RemoveCard(card, cardRemovedCallback);
+            return true;
+        }
+
+        public void PopCards (List<Card> cardList, Action<Card, Zone> cardLeftCallback = null)
+        {
+            List<Card> removed = new();
+            foreach (Card card in cardList)
+                if (PopCard(card, cardLeftCallback))
+                    removed.Add(card);
+            OnCardGroupLeft?.Invoke(removed);
         }
 
         public void Shuffle ()
@@ -89,6 +134,11 @@ namespace Kalkatos.Firecard.Core
             OnShuffled?.Invoke();
         }
 
+        public int IndexOf (Card card)
+        {
+            return cards.IndexOf(card);
+        }
+
         public static ZoneGetter Tag (string tag)
         {
             return new ZoneGetter().Tag(tag);
@@ -102,6 +152,25 @@ namespace Kalkatos.Firecard.Core
         public static ZoneGetter Card (CardGetter cardGetter)
         {
             return new ZoneGetter().Card(cardGetter);
+        }
+
+        private void AddCard (Card card, int index, Action<Card, Zone, Zone> addCallback, Action<Card, Zone> removeCallback)
+        {
+            Zone oldZone = card.CurrentZone;
+            if (oldZone != null)
+                oldZone.RemoveCard(card, removeCallback);
+            card.currentZone = this;
+            cards.Insert(index, card);
+            OnCardEntered?.Invoke(card);
+            addCallback?.Invoke(card, this, oldZone);
+        }
+
+        private void RemoveCard (Card card, Action<Card, Zone> callback)
+        {
+            card.currentZone = null;
+            cards.Remove(card);
+            OnCardLeft?.Invoke(card);
+            callback?.Invoke(card, this);
         }
     }
 }

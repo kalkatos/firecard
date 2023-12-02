@@ -19,17 +19,13 @@ namespace Kalkatos.Firecard.Core
         /// Set by the Match when instantiated
         /// </summary>
         internal string id;
-        /// <summary>
-        /// Set by the zone the card is in
-        /// </summary>
-        internal int index;
         internal Zone currentZone;
         internal string name;
         internal List<string> tags;
         
         private Dictionary<string, Field> fields = new();
 
-        public int Index => index;
+        public int Index => currentZone != null ? currentZone.IndexOf(this) : -1;
         public string Name => name;
         public Zone CurrentZone => currentZone;
 

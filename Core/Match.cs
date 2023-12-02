@@ -10,38 +10,60 @@ namespace Kalkatos.Firecard.Core
     public class Match
     {
         public static event Action<string, string, string> OnVariableChanged;
+        public static event Action<Card, Zone, Zone> OnCardEnteredZone;
+        public static event Action<Card, Zone> OnCardLeftZone;
 
         internal static Random Random;
 
         private static List<Card> cards;
         private static List<Zone> zones;
-        private static List<Rule> rules;
+        private static Dictionary<Trigger, List<Rule>> rules;
         private static List<string> phases;
         private static Dictionary<string, string> variables = new();
+        private static MatchState currentState;
+
+        private const string VAR_NAME = "variable";
+        private const string VAR_VALUE = "newValue";
+        private const string VAR_OLD_VALUE = "oldValue";
+        private const string MOVED_CARD = "movedCard";
+        private const string NEW_ZONE = "newZone";
+        private const string OLD_ZONE = "oldZone";
 
         private static string[] defaultVariables = new string[]
         {
-            "matchNumber", "turnNumber", "phase", "actionName", "message", "variable",
-            "newValue", "oldValue", "rule", "ruleName", "usedCard", "usedCardZone",
-            "movedCard", "newZone", "oldZone", "usedZone", "additionalInfo", "this",
+            "matchNumber", "turnNumber", "phase", "actionName", "message", VAR_NAME,
+            VAR_VALUE, VAR_OLD_VALUE, "rule", "ruleName", "usedCard", "usedCardZone",
+            MOVED_CARD, NEW_ZONE, OLD_ZONE, "usedZone", "additionalInfo", "this",
         };
 
         public static void Setup (MatchData matchData)
         {
+            // Cards
             cards = new();
             for (int i = 0; i < matchData.Cards.Count; i++)
             {
                 Card newCard = new Card(matchData.Cards[i]);
                 cards.Add(newCard);
             }
+            // Zones
             zones = new();
             for (int i = 0; i < matchData.Zones.Count; i++)
             {
                 Zone newZone = new Zone(matchData.Zones[i]);
                 zones.Add(newZone);
             }
-            rules = new List<Rule>(matchData.Rules);
+            // Rules
+            rules = new();
+            foreach (Rule rule in matchData.Rules)
+            {
+                if (rules.ContainsKey(rule.Trigger))
+                    rules[rule.Trigger].Add(rule);
+                else
+                    rules.Add(rule.Trigger, new List<Rule>() { rule });
+            }
+            // Phases
             phases = new List<string>(matchData.Phases);
+            // Variables
             variables = new();
             for (int i = 0; i < defaultVariables.Length; i++)
                 variables.Add(defaultVariables[i], "");
@@ -60,6 +82,10 @@ namespace Kalkatos.Firecard.Core
                 }
                 variables.Add(variable, matchData.Variables[i].Item2);
             }
+            // Events
+            OnVariableChanged += HandleVariableChanged;
+            OnCardEnteredZone += HandleCardEnteredZone;
+            OnCardLeftZone += HandleCardLeftZone;
         }
 
         public static float GetNumericVariable (string variableName)
@@ -101,6 +127,18 @@ namespace Kalkatos.Firecard.Core
                 case EffectType.UseZone:
                     break;
                 case EffectType.MoveCardToZone:
+                    List<Zone> zones = effect.ZoneParameter.GetZones();
+                    foreach (Zone zone in zones)
+                    {
+                        List<Card> cards = effect.CardParameter.GetCards();
+                        if (cards.Count > 0)
+                        {
+                            if (effect.MoveCardOption == MoveCardOption.ToBottom)
+                                zone.InsertCards(cards, 0, OnCardEnteredZone, OnCardLeftZone);
+                            else
+                                zone.PushCards(cards, OnCardEnteredZone, OnCardLeftZone);
+                        }
+                    }
                     break;
                 case EffectType.SetCardFieldValue:
                     break;
@@ -133,6 +171,55 @@ namespace Kalkatos.Firecard.Core
         {
             // TODO Return actual current state
             return new MatchState();
+        }
+
+        private static void SetVariable (string varName, string varValue)
+        {
+            variables[varName] = varValue;
+        }
+
+        private static void TriggerRules (Trigger trigger)
+        {
+            if (rules.ContainsKey(trigger))
+            {
+                foreach (Rule rule in rules[trigger])
+                {
+                    rule.Condition.Evaluate(currentState);
+                    if (rule.Condition.GetValue())
+                    {
+                        foreach (Effect effect in rule.TrueEffects)
+                            ExecuteEffect(effect);
+                    }
+                    else
+                    {
+                        foreach (Effect effect in rule.FalseEffects)
+                            ExecuteEffect(effect);
+                    }
+                }
+            }
+        }
+
+        private static void HandleVariableChanged (string varName, string oldValue, string newValue)
+        {
+            SetVariable(VAR_NAME, varName);
+            SetVariable(VAR_OLD_VALUE, oldValue);
+            SetVariable(VAR_VALUE, newValue);
+            TriggerRules(Trigger.OnVariableChanged);
+        }
+
+        private static void HandleCardEnteredZone (Card card, Zone newZone, Zone oldZone)
+        {
+            SetVariable(MOVED_CARD, card.id);
+            SetVariable(NEW_ZONE, newZone.id);
+            SetVariable(OLD_ZONE, oldZone.id);
+            TriggerRules(Trigger.OnCardEnteredZone);
+        }
+
+        private static void HandleCardLeftZone (Card card, Zone oldZone)
+        {
+            SetVariable(MOVED_CARD, card.id);
+            SetVariable(OLD_ZONE, oldZone.id);
+            TriggerRules(Trigger.OnCardLeftZone);
         }
     }
 }
