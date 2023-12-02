@@ -97,7 +97,7 @@ namespace Kalkatos.Firecard.Core
             return GetTextFieldValue(fieldName.GetString());
         }
 
-        internal void SetNumericValue (string fieldName, float value)
+        public void SetNumericValue (string fieldName, float value)
         {
             Field oldField = fields.ContainsKey(fieldName) ? fields[fieldName] : new Field() { Name = fieldName };
             Field newField = new Field(oldField);
@@ -106,7 +106,7 @@ namespace Kalkatos.Firecard.Core
             OnFieldChanged?.Invoke(oldField, newField);
         }
 
-        internal void SetStringValue (string fieldName, string value)
+        public void SetStringValue (string fieldName, string value)
         {
             Field oldField = fields.ContainsKey(fieldName) ? fields[fieldName] : new Field() { Name = fieldName };
             Field newField = new Field(oldField);

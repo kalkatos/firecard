@@ -116,8 +116,7 @@ namespace Kalkatos.Firecard.Utility
 
         public CardGetter Field (string fieldName, Getter getter)
         {
-            Filters.Add(new CardFilter_Field(fieldName, getter, Operation.Equals));
-            return this;
+            return Field(fieldName, getter, Operation.Equals);
         }
 
         public CardGetter Field (string fieldName, string value, Operation operation)
@@ -128,8 +127,7 @@ namespace Kalkatos.Firecard.Utility
 
         public CardGetter Field (string fieldName, string value)
         {
-            Filters.Add(new CardFilter_FieldText(fieldName, value, Operation.Equals));
-            return this;
+            return Field(fieldName, value, Operation.Equals);
         }
 
         public CardGetter Top (int value)
