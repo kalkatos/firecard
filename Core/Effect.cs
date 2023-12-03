@@ -23,6 +23,14 @@ namespace Kalkatos.Firecard.Core
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public ZoneGetter ZoneParameter;
 
+        [JsonIgnore]
+        public Action<Effect> ExecutionFunction;
+
+        public Effect ()
+        {
+            ExecutionFunction = ExecuteSelf;
+        }
+
         public static Effect EndCurrentPhase ()
         {
             return new Effect { EffectType = EffectType.EndCurrentPhase };
@@ -71,6 +79,11 @@ namespace Kalkatos.Firecard.Core
         public static Effect MoveCardToZone (CardGetter cardGetter, ZoneGetter zoneGetter, MoveCardOption option = MoveCardOption.None)
         {
             return new Effect { EffectType = EffectType.MoveCardToZone, CardParameter = cardGetter, ZoneParameter = zoneGetter, MoveCardOption = option };
+        }
+
+        private void ExecuteSelf (Effect effect)
+        {
+            Match.ExecuteEffect(this);
         }
 
         // TODO Finish effect simple builders

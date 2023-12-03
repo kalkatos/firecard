@@ -371,7 +371,7 @@ namespace Kalkatos.Firecard.Utility
 
         internal override bool IsMatch (Card card)
         {
-            return card.CurrentZone.Count - card.index >= amount;
+            return card.CurrentZone.Count - card.Index >= amount;
         }
     }
 
@@ -390,7 +390,7 @@ namespace Kalkatos.Firecard.Utility
 
         internal override bool IsMatch (Card card)
         {
-            return card.index < amount;
+            return card.Index < amount;
         }
     }
 
