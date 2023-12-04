@@ -111,28 +111,11 @@ namespace Kalkatos.Firecard.Core
                 }
                 variables.Add(variable, matchData.Variables[i].Item2);
             }
-            // Events
-            OnVariableChanged += HandleVariableChanged;
-            OnCardEnteredZone += HandleCardEnteredZone;
-            OnCardLeftZone += HandleCardLeftZone;
-            OnMatchStarted += HandleMatchStarted;
-            OnMatchEnded += HandleMatchEnded;
-            OnTurnStarted += HandleTurnStarted;
-            OnTurnEnded += HandleTurnEnded;
-            OnPhaseStarted += HandlePhaseStarted;
-            OnPhaseEnded += HandlePhaseEnded;
-            OnCardUsed += HandleCardUsed;
-            OnZoneUsed += HandleZoneUsed;
-            OnCardEnteredZone += HandleCardEnteredZone;
-            OnCardLeftZone += HandleCardLeftZone;
-            OnActionUsed += HandleActionUsed;
-            OnVariableChanged += HandleVariableChanged;
-            OnRuleActivated += HandleRuleActivated;
         }
 
         public static void Start ()
         {
-            OnMatchStarted?.Invoke(matchNumber);
+            RaiseMatchStarted(matchNumber);
         }
 
         public static MatchState GetState ()
@@ -161,43 +144,43 @@ namespace Kalkatos.Firecard.Core
             switch (effect.EffectType)
             {
                 case EffectType.EndCurrentPhase:
-                    EndCurrentPhaseEffectAction(effect);
+                    EndCurrentPhase_EffectAction(effect);
                     break;
                 case EffectType.EndTheMatch:
-                    EndTheMatchEffectAction(effect);
+                    EndTheMatch_EffectAction(effect);
                     break;
                 case EffectType.EndSubphaseLoop:
-                    EndSubphaseLoopEffectAction(effect);
+                    EndSubphaseLoop_EffectAction(effect);
                     break;
                 case EffectType.UseAction:
-                    UseActionEffectAction(effect);
+                    UseAction_EffectAction(effect);
                     break;
                 case EffectType.StartSubphaseLoop:
-                    StartSubphaseLoopEffectAction(effect);
+                    StartSubphaseLoop_EffectAction(effect);
                     break;
                 case EffectType.Shuffle:
-                    ShuffleEffectAction(effect);
+                    Shuffle_EffectAction(effect);
                     break;
                 case EffectType.UseCard:
-                    UseCardEffectAction(effect);
+                    UseCard_EffectAction(effect);
                     break;
                 case EffectType.UseZone:
-                    UseZoneEffectAction(effect);
+                    UseZone_EffectAction(effect);
                     break;
                 case EffectType.MoveCardToZone:
-                    MoveCardToZoneEffectAction(effect);
+                    MoveCardToZone_EffectAction(effect);
                     break;
                 case EffectType.SetCardFieldValue:
-                    SetCardFieldValueEffectAction(effect);
+                    SetCardFieldValue_EffectAction(effect);
                     break;
                 case EffectType.SetVariable:
-                    SetVariableEffectAction(effect);
+                    SetVariable_EffectAction(effect);
                     break;
                 case EffectType.AddTagToCard:
-                    AddTagToCardEffectAction(effect);
+                    AddTagToCard_EffectAction(effect);
                     break;
                 case EffectType.RemoveTagFromCard:
-                    RemoveTagFromCardEffectAction(effect);
+                    RemoveTagFromCard_EffectAction(effect);
                     break;
                 default:
                     throw new NotImplementedException("Effect type not implemented: " + effect.EffectType);
@@ -206,22 +189,6 @@ namespace Kalkatos.Firecard.Core
 
         public static void Dispose ()
         {
-            OnVariableChanged -= HandleVariableChanged;
-            OnCardEnteredZone -= HandleCardEnteredZone;
-            OnCardLeftZone -= HandleCardLeftZone;
-            OnMatchStarted -= HandleMatchStarted;
-            OnMatchEnded -= HandleMatchEnded;
-            OnTurnStarted -= HandleTurnStarted;
-            OnTurnEnded -= HandleTurnEnded;
-            OnPhaseStarted -= HandlePhaseStarted;
-            OnPhaseEnded -= HandlePhaseEnded;
-            OnCardUsed -= HandleCardUsed;
-            OnZoneUsed -= HandleZoneUsed;
-            OnCardEnteredZone -= HandleCardEnteredZone;
-            OnCardLeftZone -= HandleCardLeftZone;
-            OnActionUsed -= HandleActionUsed;
-            OnVariableChanged -= HandleVariableChanged;
-            OnRuleActivated -= HandleRuleActivated;
             cards = null;
             zones = null;
             rules = null;
@@ -235,92 +202,92 @@ namespace Kalkatos.Firecard.Core
             switch (effect.EffectType)
             {
                 case EffectType.EndCurrentPhase:
-                    effect.ExecutionFunction = EndCurrentPhaseEffectAction;
+                    effect.ExecutionFunction = EndCurrentPhase_EffectAction;
                     break;
                 case EffectType.EndTheMatch:
-                    effect.ExecutionFunction = EndTheMatchEffectAction;
+                    effect.ExecutionFunction = EndTheMatch_EffectAction;
                     break;
                 case EffectType.EndSubphaseLoop:
-                    effect.ExecutionFunction = EndSubphaseLoopEffectAction;
+                    effect.ExecutionFunction = EndSubphaseLoop_EffectAction;
                     break;
                 case EffectType.UseAction:
-                    effect.ExecutionFunction = UseActionEffectAction;
+                    effect.ExecutionFunction = UseAction_EffectAction;
                     break;
                 case EffectType.StartSubphaseLoop:
-                    effect.ExecutionFunction = StartSubphaseLoopEffectAction;
+                    effect.ExecutionFunction = StartSubphaseLoop_EffectAction;
                     break;
                 case EffectType.Shuffle:
-                    effect.ExecutionFunction = ShuffleEffectAction;
+                    effect.ExecutionFunction = Shuffle_EffectAction;
                     break;
                 case EffectType.UseCard:
-                    effect.ExecutionFunction = UseCardEffectAction;
+                    effect.ExecutionFunction = UseCard_EffectAction;
                     break;
                 case EffectType.UseZone:
-                    effect.ExecutionFunction = UseZoneEffectAction;
+                    effect.ExecutionFunction = UseZone_EffectAction;
                     break;
                 case EffectType.MoveCardToZone:
-                    effect.ExecutionFunction = MoveCardToZoneEffectAction;
+                    effect.ExecutionFunction = MoveCardToZone_EffectAction;
                     break;
                 case EffectType.SetCardFieldValue:
-                    effect.ExecutionFunction = SetCardFieldValueEffectAction;
+                    effect.ExecutionFunction = SetCardFieldValue_EffectAction;
                     break;
                 case EffectType.SetVariable:
-                    effect.ExecutionFunction = SetVariableEffectAction;
+                    effect.ExecutionFunction = SetVariable_EffectAction;
                     break;
                 case EffectType.AddTagToCard:
-                    effect.ExecutionFunction = AddTagToCardEffectAction;
+                    effect.ExecutionFunction = AddTagToCard_EffectAction;
                     break;
                 case EffectType.RemoveTagFromCard:
-                    effect.ExecutionFunction = RemoveTagFromCardEffectAction;
+                    effect.ExecutionFunction = RemoveTagFromCard_EffectAction;
                     break;
                 default:
                     throw new NotImplementedException("Effect type not implemented: " + effect.EffectType);
             }
         }
 
-        private static void EndCurrentPhaseEffectAction (Effect effect)
+        private static void EndCurrentPhase_EffectAction (Effect effect)
         {
 
         }
 
-        private static void EndTheMatchEffectAction (Effect effect)
+        private static void EndTheMatch_EffectAction (Effect effect)
         {
 
         }
 
-        private static void EndSubphaseLoopEffectAction (Effect effect)
+        private static void EndSubphaseLoop_EffectAction (Effect effect)
         {
 
         }
 
-        private static void UseActionEffectAction (Effect effect)
+        private static void UseAction_EffectAction (Effect effect)
         {
 
         }
 
-        private static void StartSubphaseLoopEffectAction (Effect effect)
+        private static void StartSubphaseLoop_EffectAction (Effect effect)
         {
 
         }
 
-        private static void ShuffleEffectAction (Effect effect)
+        private static void Shuffle_EffectAction (Effect effect)
         {
             List<Zone> zonesToShuffle = effect.ZoneParameter.GetZones();
             for (int i = 0; i < zonesToShuffle.Count; i++)
                 zonesToShuffle[i].Shuffle();
         }
 
-        private static void UseCardEffectAction (Effect effect)
+        private static void UseCard_EffectAction (Effect effect)
         {
 
         }
 
-        private static void UseZoneEffectAction (Effect effect)
+        private static void UseZone_EffectAction (Effect effect)
         {
 
         }
 
-        private static void MoveCardToZoneEffectAction (Effect effect)
+        private static void MoveCardToZone_EffectAction (Effect effect)
         {
             List<Zone> zones = effect.ZoneParameter.GetZones();
             foreach (Zone zone in zones)
@@ -329,19 +296,19 @@ namespace Kalkatos.Firecard.Core
                 if (cards.Count > 0)
                 {
                     if (effect.MoveCardOption == MoveCardOption.ToBottom)
-                        zone.InsertCards(cards, 0, OnCardEnteredZone, OnCardLeftZone);
+                        zone.InsertCards(cards, 0, RaiseCardEnteredZone, RaiseCardLeftZone);
                     else
-                        zone.PushCards(cards, OnCardEnteredZone, OnCardLeftZone);
+                        zone.PushCards(cards, RaiseCardEnteredZone, RaiseCardLeftZone);
                 }
             }
         }
 
-        private static void SetCardFieldValueEffectAction (Effect effect)
+        private static void SetCardFieldValue_EffectAction (Effect effect)
         {
 
         }
 
-        private static void SetVariableEffectAction (Effect effect)
+        private static void SetVariable_EffectAction (Effect effect)
         {
             string varName = effect.StringParameter1.GetString();
             if (effect.NumberParameter != null)
@@ -351,7 +318,7 @@ namespace Kalkatos.Firecard.Core
                 if (variables.ContainsKey(varName))
                     float.TryParse(variables[varName], out oldValue);
                 variables[varName] = newValue.ToString();
-                OnVariableChanged?.Invoke(varName, oldValue.ToString(), newValue.ToString());
+                RaiseVariableChanged(varName, oldValue.ToString(), newValue.ToString());
             }
             else if (effect.StringParameter2 != null)
             {
@@ -359,16 +326,15 @@ namespace Kalkatos.Firecard.Core
             }
         }
 
-        private static void AddTagToCardEffectAction (Effect effect)
+        private static void AddTagToCard_EffectAction (Effect effect)
         {
 
         }
 
-        private static void RemoveTagFromCardEffectAction (Effect effect)
+        private static void RemoveTagFromCard_EffectAction (Effect effect)
         {
 
         }
-
 
         private static void SetVariable (string varName, string varValue)
         {
@@ -396,78 +362,103 @@ namespace Kalkatos.Firecard.Core
             }
         }
 
-        private static void HandleMatchStarted (int matchNumber)
+        private static void RaiseMatchStarted (int matchNumber)
         {
             SetVariable(MATCH_NUMBER, matchNumber.ToString());
             TriggerRules(Trigger.OnMatchStarted);
+            OnMatchStarted?.Invoke(matchNumber);
         }
 
-        private static void HandleMatchEnded (int matchNumber)
+        private static void RaiseMatchEnded (int matchNumber)
         {
+            SetVariable(MATCH_NUMBER, matchNumber.ToString());
+            TriggerRules(Trigger.OnMatchEnded);
+            OnMatchEnded?.Invoke(matchNumber);
             Dispose();
         }
 
-        private static void HandleTurnStarted (int turnNumber)
+        private static void RaiseTurnStarted (int turnNumber)
         {
-            
+            SetVariable(TURN_NUMBER, turnNumber.ToString());
+            TriggerRules(Trigger.OnTurnStarted);
+            OnTurnStarted?.Invoke(turnNumber);
         }
 
-        private static void HandleTurnEnded (int turnNumber)
+        private static void RaiseTurnEnded (int turnNumber)
         {
-
+            SetVariable(TURN_NUMBER, turnNumber.ToString());
+            TriggerRules(Trigger.OnTurnEnded);
+            OnTurnEnded?.Invoke(turnNumber);
         }
 
-        private static void HandlePhaseStarted (string phase)
+        private static void RaisePhaseStarted (string phase)
         {
-
+            SetVariable(PHASE, phase);
+            TriggerRules(Trigger.OnPhaseStarted);
+            OnPhaseStarted?.Invoke(phase);
         }
 
-        private static void HandlePhaseEnded (string phase)
+        private static void RaisePhaseEnded (string phase)
         {
-
+            SetVariable(PHASE, phase);
+            TriggerRules(Trigger.OnPhaseEnded);
+            OnPhaseEnded?.Invoke(phase);
         }
 
-        private static void HandleCardUsed (Card card)
+        private static void RaiseCardUsed (Card card)
         {
-
+            SetVariable(USED_CARD, card.id);
+            SetVariable(USED_CARD_ZONE, (card.CurrentZone != null ? card.CurrentZone.id : ""));
+            TriggerRules(Trigger.OnCardUsed);
+            OnCardUsed?.Invoke(card);
         }
 
-        private static void HandleZoneUsed (Zone zone)
+        private static void RaiseZoneUsed (Zone zone)
         {
-
+            SetVariable(USED_ZONE, zone.id);
+            TriggerRules(Trigger.OnZoneUsed);
+            OnZoneUsed?.Invoke(zone);
         }
 
-        private static void HandleCardEnteredZone (Card card, Zone newZone, Zone oldZone)
+        private static void RaiseCardEnteredZone (Card card, Zone newZone, Zone oldZone)
         {
             SetVariable(MOVED_CARD, card.id);
             SetVariable(NEW_ZONE, newZone.id);
             SetVariable(OLD_ZONE, oldZone.id);
             TriggerRules(Trigger.OnCardEnteredZone);
+            OnCardEnteredZone?.Invoke(card, newZone, oldZone);
         }
 
-        private static void HandleCardLeftZone (Card card, Zone oldZone)
+        private static void RaiseCardLeftZone (Card card, Zone oldZone)
         {
             SetVariable(MOVED_CARD, card.id);
             SetVariable(OLD_ZONE, oldZone.id);
             TriggerRules(Trigger.OnCardLeftZone);
+            OnCardLeftZone?.Invoke(card, oldZone);
         }
 
-        private static void HandleActionUsed (string actionName)
+        private static void RaiseActionUsed (string actionName)
         {
-
+            SetVariable(ACTION_NAME, actionName);
+            TriggerRules(Trigger.OnActionUsed);
+            OnActionUsed?.Invoke(actionName);
         }
 
-        private static void HandleVariableChanged (string varName, string oldValue, string newValue)
+        private static void RaiseVariableChanged (string varName, string oldValue, string newValue)
         {
             SetVariable(VAR_NAME, varName);
             SetVariable(VAR_OLD_VALUE, oldValue);
             SetVariable(VAR_VALUE, newValue);
             TriggerRules(Trigger.OnVariableChanged);
+            OnVariableChanged?.Invoke(varName, oldValue, newValue);
         }
 
-        private static void HandleRuleActivated (Rule rule)
+        private static void RaiseRuleActivated (Rule rule)
         {
-
+            SetVariable(RULE, rule.id);
+            SetVariable(RULE_NAME, rule.Name);
+            TriggerRules(Trigger.OnRuleActivated);
+            OnRuleActivated?.Invoke(rule);
         }
     }
 }
