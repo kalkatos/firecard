@@ -28,9 +28,12 @@ namespace Kalkatos.Firecard.Core
         private static int matchNumber;
         private static List<Card> cards;
         private static List<Zone> zones;
-        private static Dictionary<Trigger, List<Rule>> rules;
         private static List<string> phases;
+        private static Dictionary<Trigger, List<Rule>> rules;
         private static Dictionary<string, string> variables;
+        private static Dictionary<string, Card> cardsById;
+        private static Dictionary<string, Zone> zonesById;
+        private static Dictionary<string, Rule> rulesById;
         private static MatchState currentState;
 
         private const string MATCH_NUMBER = "matchNumber";
@@ -65,22 +68,40 @@ namespace Kalkatos.Firecard.Core
             matchNumber = matchData.MatchNumber;
             // Cards
             cards = new();
+            cardsById = new();
             for (int i = 0; i < matchData.Cards.Count; i++)
             {
+                string newId;
+                do newId = "c" + Random.Next(1_000_000, 10_000_000);
+                while (cardsById.ContainsKey(newId));
                 Card newCard = new Card(matchData.Cards[i]);
+                newCard.id = newId;
+                cardsById.Add(newId, newCard);
                 cards.Add(newCard);
             }
             // Zones
             zones = new();
+            zonesById = new();
             for (int i = 0; i < matchData.Zones.Count; i++)
             {
+                string newId;
+                do newId = "z" + Random.Next(10_000, 100_000);
+                while (zonesById.ContainsKey(newId));
                 Zone newZone = new Zone(matchData.Zones[i]);
+                newZone.id = newId;
+                zonesById.Add(newId, newZone);
                 zones.Add(newZone);
             }
             // Rules
             rules = new();
+            rulesById = new();
             foreach (Rule rule in matchData.Rules)
             {
+                string newId;
+                do newId = "r" + Random.Next(1_000_000, 10_000_000);
+                while (cardsById.ContainsKey(newId));
+                rule.id = newId;
+                rulesById.Add(newId, rule);
                 if (rules.ContainsKey(rule.Trigger))
                     rules[rule.Trigger].Add(rule);
                 else
