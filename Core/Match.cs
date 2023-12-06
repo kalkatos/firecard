@@ -64,73 +64,91 @@ namespace Kalkatos.Firecard.Core
 
         public static void Setup (MatchData matchData)
         {
+            if (matchData == null)
+                throw new ArgumentException("Match data cannot be null.");
             Random = new Random();
             matchNumber = matchData.MatchNumber;
             // Cards
             cards = new();
             cardsById = new();
-            for (int i = 0; i < matchData.Cards.Count; i++)
+            if (matchData.Cards != null)
             {
-                string newId;
-                do newId = "c" + Random.Next(1_000_000, 10_000_000);
-                while (cardsById.ContainsKey(newId));
-                Card newCard = new Card(matchData.Cards[i]);
-                newCard.id = newId;
-                cardsById.Add(newId, newCard);
-                cards.Add(newCard);
+                for (int i = 0; i < matchData.Cards.Count; i++)
+                {
+                    string newId;
+                    do newId = "c" + Random.Next(1_000_000, 10_000_000);
+                    while (cardsById.ContainsKey(newId));
+                    Card newCard = new Card(matchData.Cards[i]);
+                    newCard.id = newId;
+                    cardsById.Add(newId, newCard);
+                    cards.Add(newCard);
+                }
             }
             // Zones
             zones = new();
             zonesById = new();
-            for (int i = 0; i < matchData.Zones.Count; i++)
+            if (matchData.Zones != null)
             {
-                string newId;
-                do newId = "z" + Random.Next(10_000, 100_000);
-                while (zonesById.ContainsKey(newId));
-                Zone newZone = new Zone(matchData.Zones[i]);
-                newZone.id = newId;
-                zonesById.Add(newId, newZone);
-                zones.Add(newZone);
+                for (int i = 0; i < matchData.Zones.Count; i++)
+                {
+                    string newId;
+                    do newId = "z" + Random.Next(10_000, 100_000);
+                    while (zonesById.ContainsKey(newId));
+                    Zone newZone = new Zone(matchData.Zones[i]);
+                    newZone.id = newId;
+                    zonesById.Add(newId, newZone);
+                    zones.Add(newZone);
+                }
             }
             // Rules
             rules = new();
             rulesById = new();
-            foreach (Rule rule in matchData.Rules)
-            {
-                string newId;
-                do newId = "r" + Random.Next(1_000_000, 10_000_000);
-                while (cardsById.ContainsKey(newId));
-                rule.id = newId;
-                rulesById.Add(newId, rule);
-                if (rules.ContainsKey(rule.Trigger))
-                    rules[rule.Trigger].Add(rule);
-                else
-                    rules.Add(rule.Trigger, new List<Rule>() { rule });
-                foreach (Effect effect in rule.TrueEffects)
-                    RegisterEffectAction(effect);
-                foreach (Effect effect in rule.FalseEffects)
-                    RegisterEffectAction(effect);
+            if (matchData.Rules != null)
+            { 
+                foreach (Rule rule in matchData.Rules)
+                {
+                    string newId;
+                    do newId = "r" + Random.Next(1_000_000, 10_000_000);
+                    while (cardsById.ContainsKey(newId));
+                    rule.id = newId;
+                    rulesById.Add(newId, rule);
+                    if (rules.ContainsKey(rule.Trigger))
+                        rules[rule.Trigger].Add(rule);
+                    else
+                        rules.Add(rule.Trigger, new List<Rule>() { rule });
+                    foreach (Effect effect in rule.TrueEffects)
+                        RegisterEffectAction(effect);
+                    foreach (Effect effect in rule.FalseEffects)
+                        RegisterEffectAction(effect);
+                }
             }
             // Phases
-            phases = new List<string>(matchData.Phases);
+            phases = new();
+            if (matchData.Phases != null)
+                phases.AddRange(matchData.Phases);
             // Variables
             variables = new();
             for (int i = 0; i < defaultVariables.Length; i++)
                 variables.Add(defaultVariables[i], "");
-            for (int i = 0; i < matchData.Variables.Count; i++)
+            if (matchData.Variables != null)
             {
-                string variable = matchData.Variables[i].Item1;
-                if (Array.IndexOf(defaultVariables, variable) >= 0)
+                for (int i = 0; i < matchData.Variables.Count; i++)
                 {
-                    Logger.LogWarning($"Variable {variable} is a reserved match variable and can not be included.");
-                    continue;
+                    string variable = matchData.Variables[i].Item1;
+                    if (Array.IndexOf(defaultVariables, variable) >= 0)
+                    {
+                        Logger.LogWarning($"Variable {variable} is a reserved match variable and can not be included.");
+                        continue;
+                    }
+                    if (variables.ContainsKey(variable))
+                    {
+                        Logger.LogWarning($"Duplicate variable name: {variable}.");
+                        continue;
+                    }
+                    variables.Add(variable, matchData.Variables[i].Item2);
                 }
-                if (variables.ContainsKey(variable))
                 {
-                    Logger.LogWarning($"Duplicate variable name: {variable}.");
-                    continue;
                 }
-                variables.Add(variable, matchData.Variables[i].Item2);
             }
         }
 
