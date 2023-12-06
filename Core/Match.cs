@@ -29,11 +29,13 @@ namespace Kalkatos.Firecard.Core
         private static List<Card> cards;
         private static List<Zone> zones;
         private static List<string> phases;
+        private static List<Player> players;
         private static Dictionary<Trigger, List<Rule>> rules;
         private static Dictionary<string, string> variables;
         private static Dictionary<string, Card> cardsById;
         private static Dictionary<string, Zone> zonesById;
         private static Dictionary<string, Rule> rulesById;
+        private static Dictionary<string, Player> playersById;
         private static MatchState currentState;
 
         private const string MATCH_NUMBER = "matchNumber";
@@ -54,12 +56,14 @@ namespace Kalkatos.Firecard.Core
         private const string USED_ZONE = "usedZone";
         private const string ADDITIONAL_INFO = "additionalInfo";
         private const string THIS = "this";
+        private const string PLAYER = "player";
 
         private static string[] defaultVariables = new string[]
         {
             MATCH_NUMBER, TURN_NUMBER, PHASE, ACTION_NAME, MESSAGE, VAR_NAME,
             VAR_VALUE, VAR_OLD_VALUE, RULE, RULE_NAME, USED_CARD, USED_CARD_ZONE,
             MOVED_CARD, NEW_ZONE, OLD_ZONE, USED_ZONE, ADDITIONAL_INFO, THIS,
+            PLAYER, 
         };
 
         public static void Setup (MatchData matchData)
@@ -147,7 +151,21 @@ namespace Kalkatos.Firecard.Core
                     }
                     variables.Add(variable, matchData.Variables[i].Item2);
                 }
+            }
+            // Players
+            players = new();
+            playersById = new();
+            if (matchData.Players != null)
+            {
+                for (int i = 0; i < matchData.Players.Count; i++)
                 {
+                    string newId;
+                    do newId = "p" + Random.Next(10_000, 100_000);
+                    while (playersById.ContainsKey(newId));
+                    Player newPlayer = new Player(matchData.Players[i]);
+                    newPlayer.id = newId;
+                    playersById.Add(newId, newPlayer);
+                    players.Add(newPlayer);
                 }
             }
         }

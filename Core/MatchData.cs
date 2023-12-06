@@ -10,6 +10,7 @@ namespace Kalkatos.Firecard.Core
     public class MatchData
     {
         public int MatchNumber = 1;
+        public List<PlayerData> Players;
         public List<CardData> Cards;
         public List<ZoneData> Zones;
         public List<Rule> Rules;
