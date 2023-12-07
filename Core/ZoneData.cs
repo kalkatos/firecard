@@ -11,5 +11,6 @@ namespace Kalkatos.Firecard.Core
     {
         public string Name;
         public List<string> Tags;
+        public Visibility Visibility;
     }
 }

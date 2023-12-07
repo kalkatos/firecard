@@ -22,6 +22,7 @@ namespace Kalkatos.Firecard.Core
         internal Zone currentZone;
         internal string name;
         internal List<string> tags;
+        internal Visibility visibility;
         
         private Dictionary<string, Field> fields = new();
 
@@ -111,6 +112,11 @@ namespace Kalkatos.Firecard.Core
             OnFieldChanged?.Invoke(oldField, newField);
         }
 
+        public void SetVisibility (Visibility value)
+        {
+            visibility = value;
+        }
+
         public static CardGetter All => new CardGetter();
 
         public static CardGetter Tag (string tag)
@@ -152,5 +158,41 @@ namespace Kalkatos.Firecard.Core
         {
             return new CardGetter().Id(variable);
         }
+
+        public static CardGetter Visibility (int value)
+        {
+            return new CardGetter().Visibility(value);
+        }
+
+        public static CardGetter Visibility (Visibility value)
+        {
+            return new CardGetter().Visibility((int)value);
+        }
+    }
+
+    public enum Visibility
+    {
+        Everyone = 0,
+        Nobody = -1,
+        Player1 = 1,
+        Player2 = 2,
+        Player3 = 4,
+        Player4 = 8,
+        Player5 = 16,
+        Player6 = 32,
+        Player7 = 64,
+        Player8 = 128,
+        Player9 = 256,
+        Player10 = 512,
+        Player11 = 1_024,
+        Player12 = 2_048,
+        Player13 = 4_096,
+        Player14 = 8_192,
+        Player15 = 16_384,
+        Player16 = 32_768,
+        Player17 = 65_536,
+        Player18 = 131_072,
+        Player19 = 262_144,
+        Player20 = 524_288,
     }
 }

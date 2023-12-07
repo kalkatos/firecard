@@ -153,6 +153,17 @@ namespace Kalkatos.Firecard.Utility
             return Index(numberGetter, Evaluator.StringToOperation(operation));
         }
 
+        public CardGetter Visibility (int value, Operation operation)
+        {
+            Filters.Add(new CardFilter_Visibility(value, operation));
+            return this;
+        }
+
+        public CardGetter Visibility (int value)
+        {
+            return Visibility(value, Operation.Equals);
+        }
+
         public List<Card> GetCards ()
         {
             List<Card> cards = new List<Card>(Match.GetState().Cards);
@@ -457,6 +468,25 @@ namespace Kalkatos.Firecard.Utility
         internal override bool IsMatch (Card card)
         {
             return Evaluator.Resolve(card.Index, Operation, numberGetter.GetNumber());
+        }
+    }
+
+    [Serializable]
+    internal class CardFilter_Visibility : Filter<Card>
+    {
+        internal int value;
+
+        internal CardFilter_Visibility () { }
+
+        internal CardFilter_Visibility (int value, Operation operation)
+        {
+            Operation = operation;
+            this.value = value;
+        }
+
+        internal override bool IsMatch (Card card)
+        {
+            return Evaluator.Resolve(card.visibility, Operation, value);
         }
     }
 }

@@ -22,6 +22,8 @@ namespace Kalkatos.Firecard.Core
         public CardGetter CardParameter;
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public ZoneGetter ZoneParameter;
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public Getter GetterParameter;
 
         [JsonIgnore]
         public Action<Effect> ExecutionFunction;
@@ -36,9 +38,64 @@ namespace Kalkatos.Firecard.Core
             return new Effect { EffectType = EffectType.EndCurrentPhase };
         }
 
+        public static Effect EndSubphaseLoop ()
+        {
+            return new Effect { EffectType = EffectType.EndSubphaseLoop };
+        }
+
         public static Effect EndTheMatch ()
         {
             return new Effect { EffectType = EffectType.EndTheMatch };
+        }
+
+        public static Effect UseAction (string actionName)
+        {
+            return new Effect { EffectType = EffectType.UseAction, StringParameter1 = new StringGetter(actionName) };
+        }
+
+        public static Effect UseAction (StringGetter actionName)
+        {
+            return new Effect { EffectType = EffectType.UseAction, StringParameter1 = actionName };
+        }
+
+        public static Effect StartSubphaseLoop (string phases)
+        {
+            return new Effect { EffectType = EffectType.StartSubphaseLoop, StringParameter1 = new StringGetter(phases) };
+        }
+
+        public static Effect StartSubphaseLoop (StringGetter phases)
+        {
+            return new Effect { EffectType = EffectType.StartSubphaseLoop, StringParameter1 = phases };
+        }
+
+        public static Effect Shuffle (ZoneGetter zoneGetter)
+        {
+            return new Effect { EffectType = EffectType.Shuffle, ZoneParameter = zoneGetter };
+        }
+
+        public static Effect UseCard (CardGetter cardGetter)
+        {
+            return new Effect { EffectType = EffectType.UseCard, CardParameter = cardGetter };
+        }
+
+        public static Effect UseZone (ZoneGetter zoneGetter)
+        {
+            return new Effect { EffectType = EffectType.UseZone, ZoneParameter = zoneGetter };
+        }
+
+        public static Effect MoveCardToZone (CardGetter cardGetter, ZoneGetter zoneGetter, MoveCardOption option = MoveCardOption.None)
+        {
+            return new Effect { EffectType = EffectType.MoveCardToZone, CardParameter = cardGetter, ZoneParameter = zoneGetter, MoveCardOption = option };
+        }
+
+        public static Effect SetCardFieldValue (CardGetter cardGetter, string fieldName, Getter value)
+        {
+            return new Effect { EffectType = EffectType.SetCardFieldValue, CardParameter = cardGetter, StringParameter1 = new StringGetter(fieldName), GetterParameter = value };
+        }
+
+        public static Effect SetCardFieldValue (CardGetter cardGetter, StringGetter fieldName, Getter value)
+        {
+            return new Effect { EffectType = EffectType.SetCardFieldValue, CardParameter = cardGetter, StringParameter1 = fieldName, GetterParameter = value };
         }
 
         public static Effect SetVariable (StringGetter variableName, NumberGetter value)
@@ -69,16 +126,6 @@ namespace Kalkatos.Firecard.Core
         public static Effect RemoveTagFromCard (Tag tag, CardGetter cardSelector)
         {
             return new Effect { EffectType = EffectType.RemoveTagFromCard, StringParameter1 = new StringGetter(tag.Value), CardParameter = cardSelector };
-        }
-
-        public static Effect Shuffle (ZoneGetter zoneGetter)
-        {
-            return new Effect { EffectType = EffectType.Shuffle, ZoneParameter = zoneGetter };
-        }
-
-        public static Effect MoveCardToZone (CardGetter cardGetter, ZoneGetter zoneGetter, MoveCardOption option = MoveCardOption.None)
-        {
-            return new Effect { EffectType = EffectType.MoveCardToZone, CardParameter = cardGetter, ZoneParameter = zoneGetter, MoveCardOption = option };
         }
 
         private void ExecuteSelf (Effect effect)
