@@ -27,7 +27,7 @@ namespace Kalkatos.Firecard.Utility
     {
         public string Value;
 
-        public static Tag FACE_DOWN = new Tag() { Value = "FaceDown" };
+        public const string FACE_DOWN = "FaceDown";
 
         public static Tag C (string cardTag) => new Tag() { Value = cardTag };
 

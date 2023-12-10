@@ -333,9 +333,9 @@ namespace Kalkatos.Firecard.Core
                 List<Card> cards = effect.CardParameter.GetCards();
                 if (cards.Count > 0)
                 {
-                    if (effect.MoveCardOption == MoveCardOption.FaceDown || zone.visibility == Visibility.Nobody)
+                    if (effect.MoveCardOption == MoveCardOption.FaceDown || zone.HasTag(Tag.FACE_DOWN))
                         foreach (Card card in cards)
-                            card.visibility = Visibility.Nobody;
+                            card.AddTag(Tag.FACE_DOWN);
                     if (effect.MoveCardOption == MoveCardOption.ToBottom)
                         zone.InsertCards(cards, 0, RaiseCardEnteredZone, RaiseCardLeftZone);
                     else

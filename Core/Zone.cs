@@ -20,7 +20,6 @@ namespace Kalkatos.Firecard.Core
         internal string name;
         internal List<string> tags;
         internal List<Card> cards;
-        internal Visibility visibility;
 
         public string Name => name;
         public Card[] Cards => cards.ToArray();
@@ -37,7 +36,6 @@ namespace Kalkatos.Firecard.Core
         {
             name = zoneData.Name;
             tags = new List<string>(zoneData.Tags);
-            visibility = zoneData.Visibility;
         }
 
         public bool HasTag (string tag)

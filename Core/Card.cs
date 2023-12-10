@@ -11,9 +11,13 @@ namespace Kalkatos.Firecard.Core
     public class Card
     {
         public static event Action<CardData> OnCardSetup;
+        public static event Action<Card, string> OnTagAddedToCard;
+        public static event Action<Card, string> OnTagRemovedFromCard;
 
         public event Action<CardData> OnSetup;
         public event Action<Field, Field> OnFieldChanged;
+        public event Action<string> OnTagAdded;
+        public event Action<string> OnTagRemoved;
 
         /// <summary>
         /// Set by the Match when instantiated
@@ -22,7 +26,6 @@ namespace Kalkatos.Firecard.Core
         internal Zone currentZone;
         internal string name;
         internal List<string> tags;
-        internal Visibility visibility;
         
         private Dictionary<string, Field> fields = new();
 
@@ -51,6 +54,22 @@ namespace Kalkatos.Firecard.Core
         public bool HasTag (string tag)
         {
             return tags.Contains(tag);
+        }
+
+        public void AddTag (string tag)
+        {
+            if (!HasTag(tag))
+                tags.Add(tag);
+            OnTagAdded?.Invoke(tag);
+            OnTagAddedToCard?.Invoke(this, tag);
+        }
+
+        public void RemoveTag (string tag)
+        {
+            if (HasTag(tag))
+                tags.Remove(tag);
+            OnTagRemoved?.Invoke(tag);
+            OnTagRemovedFromCard?.Invoke(this, tag);
         }
 
         public bool HasField (string fieldName)
@@ -112,11 +131,6 @@ namespace Kalkatos.Firecard.Core
             OnFieldChanged?.Invoke(oldField, newField);
         }
 
-        public void SetVisibility (Visibility value)
-        {
-            visibility = value;
-        }
-
         public static CardGetter All => new CardGetter();
 
         public static CardGetter Tag (string tag)
@@ -158,41 +172,5 @@ namespace Kalkatos.Firecard.Core
         {
             return new CardGetter().Id(variable);
         }
-
-        public static CardGetter Visibility (int value)
-        {
-            return new CardGetter().Visibility(value);
-        }
-
-        public static CardGetter Visibility (Visibility value)
-        {
-            return new CardGetter().Visibility((int)value);
-        }
-    }
-
-    public enum Visibility
-    {
-        Everyone = 0,
-        Nobody = -1,
-        Player1 = 1,
-        Player2 = 2,
-        Player3 = 4,
-        Player4 = 8,
-        Player5 = 16,
-        Player6 = 32,
-        Player7 = 64,
-        Player8 = 128,
-        Player9 = 256,
-        Player10 = 512,
-        Player11 = 1_024,
-        Player12 = 2_048,
-        Player13 = 4_096,
-        Player14 = 8_192,
-        Player15 = 16_384,
-        Player16 = 32_768,
-        Player17 = 65_536,
-        Player18 = 131_072,
-        Player19 = 262_144,
-        Player20 = 524_288,
     }
 }
