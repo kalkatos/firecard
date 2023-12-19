@@ -11,6 +11,11 @@ namespace Kalkatos.Firecard.Core
     {
         public List<Card> Cards;
         public List<Zone> Zones;
+        public bool IsEnded;
+        public int Turn;
+        public string Phase;
+        public string[] SubPhaseLoop;
+        public Dictionary<string, string> Variables;
     }
 
     /// <summary>

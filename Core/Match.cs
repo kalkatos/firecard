@@ -30,6 +30,7 @@ namespace Kalkatos.Firecard.Core
         private static List<Card> cards;
         private static List<Zone> zones;
         private static List<string> phases;
+        private static List<string> subphases;
         private static Dictionary<Trigger, List<Rule>> rules;
         private static Dictionary<string, string> variables;
         private static Dictionary<string, Card> cardsById;
@@ -125,8 +126,11 @@ namespace Kalkatos.Firecard.Core
             }
             // Phases
             phases = new();
+            subphases = new();
             if (matchData.Phases != null)
                 phases.AddRange(matchData.Phases);
+            else
+                phases.Add("Main");
             // Variables
             variables = new();
             for (int i = 0; i < defaultVariables.Length; i++)
@@ -153,6 +157,15 @@ namespace Kalkatos.Firecard.Core
 
         public static void Start ()
         {
+            currentState = new MatchState()
+            {
+                Cards = cards,
+                Zones = zones,
+                Phase = phases[0],
+                Turn = 0,
+                SubPhaseLoop = new string[0],
+                Variables = variables,
+            };
             RaiseMatchStarted(matchNumber);
         }
 
@@ -179,6 +192,8 @@ namespace Kalkatos.Firecard.Core
 
         public static void ExecuteEffect (Effect effect)
         {
+            if (currentState.IsEnded)
+                return;
             switch (effect.EffectType)
             {
                 case EffectType.EndCurrentPhase:
@@ -231,6 +246,7 @@ namespace Kalkatos.Firecard.Core
             zones = null;
             rules = null;
             phases = null;
+            subphases = null;
             variables = null;
             currentState = null;
         }
@@ -285,31 +301,62 @@ namespace Kalkatos.Firecard.Core
 
         private static void EndCurrentPhase_EffectAction (Effect effect)
         {
+            if (currentState.IsEnded)
+                return;
+            RaisePhaseEnded(currentState.Phase);
+            List<string> currentPhases = phases;
+            bool isRunningSubphases = subphases.Count > 0;
+            if (isRunningSubphases)
+                currentPhases = subphases;
 
+            int currentPhaseIndex = currentPhases.IndexOf(currentState.Phase) + 1;
+            if (currentPhaseIndex == currentPhases.Count)
+            {
+                if (!isRunningSubphases)
+                {
+                    RaiseTurnEnded(currentState.Turn);
+                    currentState.Turn++;
+                    RaiseTurnStarted(currentState.Turn);
+                }
+                currentState.Phase = currentPhases[0];
+            }
+            else
+                currentState.Phase = currentPhases[currentPhaseIndex + 1];
+            RaisePhaseStarted(currentState.Phase);
         }
 
         private static void EndTheMatch_EffectAction (Effect effect)
         {
+            if (currentState.IsEnded)
+                return;
 
         }
 
         private static void EndSubphaseLoop_EffectAction (Effect effect)
         {
+            if (currentState.IsEnded)
+                return;
 
         }
 
         private static void UseAction_EffectAction (Effect effect)
         {
+            if (currentState.IsEnded)
+                return;
 
         }
 
         private static void StartSubphaseLoop_EffectAction (Effect effect)
         {
+            if (currentState.IsEnded)
+                return;
 
         }
 
         private static void Shuffle_EffectAction (Effect effect)
         {
+            if (currentState.IsEnded)
+                return;
             List<Zone> zonesToShuffle = effect.ZoneParameter.GetZones();
             for (int i = 0; i < zonesToShuffle.Count; i++)
                 zonesToShuffle[i].Shuffle();
@@ -317,16 +364,22 @@ namespace Kalkatos.Firecard.Core
 
         private static void UseCard_EffectAction (Effect effect)
         {
+            if (currentState.IsEnded)
+                return;
 
         }
 
         private static void UseZone_EffectAction (Effect effect)
         {
+            if (currentState.IsEnded)
+                return;
 
         }
 
         private static void MoveCardToZone_EffectAction (Effect effect)
         {
+            if (currentState.IsEnded)
+                return;
             List<Zone> zones = effect.ZoneParameter.GetZones();
             foreach (Zone zone in zones)
             {
@@ -346,11 +399,15 @@ namespace Kalkatos.Firecard.Core
 
         private static void SetCardFieldValue_EffectAction (Effect effect)
         {
+            if (currentState.IsEnded)
+                return;
 
         }
 
         private static void SetVariable_EffectAction (Effect effect)
         {
+            if (currentState.IsEnded)
+                return;
             string varName = effect.StringParameter1.GetString();
             if (effect.NumberParameter != null)
             {
@@ -369,21 +426,29 @@ namespace Kalkatos.Firecard.Core
 
         private static void AddTagToCard_EffectAction (Effect effect)
         {
+            if (currentState.IsEnded)
+                return;
 
         }
 
         private static void RemoveTagFromCard_EffectAction (Effect effect)
         {
+            if (currentState.IsEnded)
+                return;
 
         }
 
         private static void SetVariable (string varName, string varValue)
         {
+            if (currentState.IsEnded)
+                return;
             variables[varName] = varValue;
         }
 
         private static void TriggerRules (Trigger trigger)
         {
+            if (currentState.IsEnded)
+                return;
             if (rules.ContainsKey(trigger))
             {
                 foreach (Rule rule in rules[trigger])
@@ -405,6 +470,8 @@ namespace Kalkatos.Firecard.Core
 
         private static void RaiseMatchStarted (int matchNumber)
         {
+            if (currentState.IsEnded)
+                return;
             SetVariable(MATCH_NUMBER, matchNumber.ToString());
             TriggerRules(Trigger.OnMatchStarted);
             OnMatchStarted?.Invoke(matchNumber);
@@ -412,6 +479,8 @@ namespace Kalkatos.Firecard.Core
 
         private static void RaiseMatchEnded (int matchNumber)
         {
+            if (currentState.IsEnded)
+                return;
             SetVariable(MATCH_NUMBER, matchNumber.ToString());
             TriggerRules(Trigger.OnMatchEnded);
             OnMatchEnded?.Invoke(matchNumber);
@@ -420,6 +489,8 @@ namespace Kalkatos.Firecard.Core
 
         private static void RaiseTurnStarted (int turnNumber)
         {
+            if (currentState.IsEnded)
+                return;
             SetVariable(TURN_NUMBER, turnNumber.ToString());
             TriggerRules(Trigger.OnTurnStarted);
             OnTurnStarted?.Invoke(turnNumber);
@@ -427,6 +498,8 @@ namespace Kalkatos.Firecard.Core
 
         private static void RaiseTurnEnded (int turnNumber)
         {
+            if (currentState.IsEnded)
+                return;
             SetVariable(TURN_NUMBER, turnNumber.ToString());
             TriggerRules(Trigger.OnTurnEnded);
             OnTurnEnded?.Invoke(turnNumber);
@@ -434,6 +507,8 @@ namespace Kalkatos.Firecard.Core
 
         private static void RaisePhaseStarted (string phase)
         {
+            if (currentState.IsEnded)
+                return;
             SetVariable(PHASE, phase);
             TriggerRules(Trigger.OnPhaseStarted);
             OnPhaseStarted?.Invoke(phase);
@@ -441,6 +516,8 @@ namespace Kalkatos.Firecard.Core
 
         private static void RaisePhaseEnded (string phase)
         {
+            if (currentState.IsEnded)
+                return;
             SetVariable(PHASE, phase);
             TriggerRules(Trigger.OnPhaseEnded);
             OnPhaseEnded?.Invoke(phase);
@@ -448,6 +525,8 @@ namespace Kalkatos.Firecard.Core
 
         private static void RaiseCardUsed (Card card)
         {
+            if (currentState.IsEnded)
+                return;
             SetVariable(USED_CARD, card.id);
             SetVariable(USED_CARD_ZONE, (card.CurrentZone != null ? card.CurrentZone.id : ""));
             TriggerRules(Trigger.OnCardUsed);
@@ -456,6 +535,8 @@ namespace Kalkatos.Firecard.Core
 
         private static void RaiseZoneUsed (Zone zone)
         {
+            if (currentState.IsEnded)
+                return;
             SetVariable(USED_ZONE, zone.id);
             TriggerRules(Trigger.OnZoneUsed);
             OnZoneUsed?.Invoke(zone);
@@ -463,6 +544,8 @@ namespace Kalkatos.Firecard.Core
 
         private static void RaiseCardEnteredZone (Card card, Zone newZone, Zone oldZone)
         {
+            if (currentState.IsEnded)
+                return;
             SetVariable(MOVED_CARD, card.id);
             SetVariable(NEW_ZONE, newZone.id);
             SetVariable(OLD_ZONE, oldZone.id);
@@ -472,6 +555,8 @@ namespace Kalkatos.Firecard.Core
 
         private static void RaiseCardLeftZone (Card card, Zone oldZone)
         {
+            if (currentState.IsEnded)
+                return;
             SetVariable(MOVED_CARD, card.id);
             SetVariable(OLD_ZONE, oldZone.id);
             TriggerRules(Trigger.OnCardLeftZone);
@@ -480,6 +565,8 @@ namespace Kalkatos.Firecard.Core
 
         private static void RaiseActionUsed (string actionName)
         {
+            if (currentState.IsEnded)
+                return;
             SetVariable(ACTION_NAME, actionName);
             TriggerRules(Trigger.OnActionUsed);
             OnActionUsed?.Invoke(actionName);
@@ -487,6 +574,8 @@ namespace Kalkatos.Firecard.Core
 
         private static void RaiseVariableChanged (string varName, string oldValue, string newValue)
         {
+            if (currentState.IsEnded)
+                return;
             SetVariable(VAR_NAME, varName);
             SetVariable(VAR_OLD_VALUE, oldValue);
             SetVariable(VAR_VALUE, newValue);
@@ -496,6 +585,8 @@ namespace Kalkatos.Firecard.Core
 
         private static void RaiseRuleActivated (Rule rule)
         {
+            if (currentState.IsEnded)
+                return;
             SetVariable(RULE, rule.id);
             SetVariable(RULE_NAME, rule.Name);
             TriggerRules(Trigger.OnRuleActivated);
