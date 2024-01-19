@@ -329,28 +329,36 @@ namespace Kalkatos.Firecard.Core
         {
             if (currentState.IsEnded)
                 return;
-
+            currentState.IsEnded = true;
+            RaiseMatchEnded(matchNumber);
         }
 
         private static void EndSubphaseLoop_EffectAction (Effect effect)
         {
             if (currentState.IsEnded)
                 return;
-
+            RaisePhaseEnded(currentState.Phase);
+            subphases.Clear();
+            currentState.Phase = currentState.OriginalPhase;
+            RaisePhaseStarted(currentState.Phase);
         }
 
         private static void UseAction_EffectAction (Effect effect)
         {
             if (currentState.IsEnded)
                 return;
-
+            RaiseActionUsed(effect.StringParameter1.GetString());
         }
 
         private static void StartSubphaseLoop_EffectAction (Effect effect)
         {
             if (currentState.IsEnded)
                 return;
-
+            currentState.OriginalPhase = currentState.Phase;
+            string phases = effect.StringParameter1.GetString();
+            subphases = new List<string>(phases.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
+            currentState.Phase = subphases[0];
+            RaisePhaseStarted(currentState.Phase);
         }
 
         private static void Shuffle_EffectAction (Effect effect)
