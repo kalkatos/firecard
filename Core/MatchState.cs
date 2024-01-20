@@ -15,7 +15,6 @@ namespace Kalkatos.Firecard.Core
         public int Turn;
         public string Phase;
         public string OriginalPhase;
-        public string[] SubPhaseLoop;
         public Dictionary<string, string> Variables;
     }
 

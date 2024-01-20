@@ -163,7 +163,6 @@ namespace Kalkatos.Firecard.Core
                 Zones = zones,
                 Phase = phases[0],
                 Turn = 0,
-                SubPhaseLoop = new string[0],
                 Variables = variables,
             };
             RaiseMatchStarted(matchNumber);
@@ -374,14 +373,20 @@ namespace Kalkatos.Firecard.Core
         {
             if (currentState.IsEnded)
                 return;
-
+            List<Card> cards = effect.CardParameter.GetCards();
+            if (cards == null || cards.Count == 0)
+                return;
+            RaiseCardUsed(cards[0]);
         }
 
         private static void UseZone_EffectAction (Effect effect)
         {
             if (currentState.IsEnded)
                 return;
-
+            List<Zone> zones = effect.ZoneParameter.GetZones();
+            if (zones == null || zones.Count == 0)
+                return;
+            RaiseZoneUsed(zones[0]);
         }
 
         private static void MoveCardToZone_EffectAction (Effect effect)
@@ -409,7 +414,21 @@ namespace Kalkatos.Firecard.Core
         {
             if (currentState.IsEnded)
                 return;
-
+            List<Card> cards = effect.CardParameter.GetCards();
+            if (cards == null || cards.Count == 0)
+                return;
+            string fieldName = effect.StringParameter1.GetString();
+            for (int i = 0; i < cards.Count; i++)
+            {
+                Card card = cards[i];
+                if (card.HasField(fieldName))
+                {
+                    if (card.IsFieldNumeric(fieldName))
+                        card.SetFieldValue(fieldName, (float)effect.GetterParameter.Get());
+                    else if (card.IsFieldText(fieldName))
+                        card.SetFieldValue(fieldName, (string)effect.GetterParameter.Get());
+                }
+            }
         }
 
         private static void SetVariable_EffectAction (Effect effect)
@@ -417,18 +436,22 @@ namespace Kalkatos.Firecard.Core
             if (currentState.IsEnded)
                 return;
             string varName = effect.StringParameter1.GetString();
+            if (!variables.ContainsKey(varName))
+                return;
             if (effect.NumberParameter != null)
             {
                 float newValue = effect.NumberParameter.GetNumber();
                 float oldValue = 0;
-                if (variables.ContainsKey(varName))
-                    float.TryParse(variables[varName], out oldValue);
+                float.TryParse(variables[varName], out oldValue);
                 variables[varName] = newValue.ToString();
                 RaiseVariableChanged(varName, oldValue.ToString(), newValue.ToString());
             }
             else if (effect.StringParameter2 != null)
             {
-
+                string newValue = effect.StringParameter2.GetString();
+                string oldValue = "";
+                variables[varName] = newValue;
+                RaiseVariableChanged(varName, oldValue, newValue);
             }
         }
 
@@ -436,14 +459,28 @@ namespace Kalkatos.Firecard.Core
         {
             if (currentState.IsEnded)
                 return;
-
+            List<Card> cards = effect.CardParameter.GetCards();
+            if (cards == null || cards.Count == 0)
+                return;
+            for (int i = 0; i < cards.Count; i++)
+            {
+                Card card = cards[i];
+                card.AddTag(effect.StringParameter1.GetString());
+            }
         }
 
         private static void RemoveTagFromCard_EffectAction (Effect effect)
         {
             if (currentState.IsEnded)
                 return;
-
+            List<Card> cards = effect.CardParameter.GetCards();
+            if (cards == null || cards.Count == 0)
+                return;
+            for (int i = 0; i < cards.Count; i++)
+            {
+                Card card = cards[i];
+                card.RemoveTag(effect.StringParameter1.GetString());
+            }
         }
 
         private static void SetVariable (string varName, string varValue)

@@ -58,16 +58,18 @@ namespace Kalkatos.Firecard.Core
 
         public void AddTag (string tag)
         {
-            if (!HasTag(tag))
-                tags.Add(tag);
+            if (HasTag(tag))
+                return;
+            tags.Add(tag);
             OnTagAdded?.Invoke(tag);
             OnTagAddedToCard?.Invoke(this, tag);
         }
 
         public void RemoveTag (string tag)
         {
-            if (HasTag(tag))
-                tags.Remove(tag);
+            if (!HasTag(tag))
+                return;
+            tags.Remove(tag);
             OnTagRemoved?.Invoke(tag);
             OnTagRemovedFromCard?.Invoke(this, tag);
         }
@@ -113,22 +115,50 @@ namespace Kalkatos.Firecard.Core
             return GetTextFieldValue(fieldName.GetString());
         }
 
-        public void SetNumericValue (string fieldName, float value)
+        public void SetFieldValue (string fieldName, string value)
         {
-            Field oldField = fields.ContainsKey(fieldName) ? fields[fieldName] : new Field() { Name = fieldName };
+            if (!HasField(fieldName))
+            {
+                Logger.LogWarning($"Card {name} does not have a field with name: {fieldName}");
+                return;
+            }
+            if (fields[fieldName].Text == value)
+                return;
+            Field oldField = fields[fieldName];
+            Field newField = new Field(oldField);
+            newField.Text = value;
+            fields[fieldName] = newField;
+            OnFieldChanged?.Invoke(oldField, newField);
+        }
+
+        public void SetFieldValue (string fieldName, float value)
+        {
+            if (!HasField(fieldName))
+            {
+                Logger.LogWarning($"Card {name} does not have a field with name: {fieldName}");
+                return;
+            }
+            if (fields[fieldName].Number == value)
+                return;
+            Field oldField = fields[fieldName];
             Field newField = new Field(oldField);
             newField.Number = value;
             fields[fieldName] = newField;
             OnFieldChanged?.Invoke(oldField, newField);
         }
 
-        public void SetStringValue (string fieldName, string value)
+        public bool IsFieldNumeric (string fieldName)
         {
-            Field oldField = fields.ContainsKey(fieldName) ? fields[fieldName] : new Field() { Name = fieldName };
-            Field newField = new Field(oldField);
-            newField.Text = value;
-            fields[fieldName] = newField;
-            OnFieldChanged?.Invoke(oldField, newField);
+            if (!HasField(fieldName))
+                return false;
+            return fields[fieldName].IsNumber();
+        }
+
+        public bool IsFieldText (string fieldName)
+        {
+            if (!HasField(fieldName))
+                return false;
+            return fields[fieldName].IsText();
         }
 
         public static CardGetter All => new CardGetter();
